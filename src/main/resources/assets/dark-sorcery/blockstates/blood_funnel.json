@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "filled=false": {
+      "model": "dark-sorcery:block/blood_funnel"
+    },
+    "filled=true": {
+      "model": "dark-sorcery:block/filled_blood_funnel"
+    }
+  }
+}
+

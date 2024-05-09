@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "tobinio.darksorcery.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "AbstractCandleBlockInvoker"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

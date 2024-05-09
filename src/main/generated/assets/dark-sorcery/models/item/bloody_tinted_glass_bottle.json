@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dark-sorcery:item/bloody_tinted_glass_bottle"
+  }
+}

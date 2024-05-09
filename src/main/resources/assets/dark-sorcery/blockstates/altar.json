@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "dark-sorcery:block/altar"
+    },
+    "facing=east": {
+      "model": "dark-sorcery:block/altar",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "dark-sorcery:block/altar",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "dark-sorcery:block/altar",
+      "y": 270
+    }
+  }
+}
+
