@@ -1,7 +1,11 @@
 package tobinio.darksorcery.blocks.altar;
 
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -22,6 +26,24 @@ import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
  * @author Tobias Frischmann
  */
 public class AltarEntity extends BlockEntity {
+
+    public final SingleVariantStorage<FluidVariant> storage = new SingleVariantStorage<>() {
+        @Override
+        protected FluidVariant getBlankVariant() {
+            return FluidVariant.blank();
+        }
+
+        @Override
+        protected long getCapacity(FluidVariant variant) {
+            return Math.max(getAltarLevel() * FluidConstants.BUCKET, FluidConstants.BOTTLE);
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            markDirty();
+        }
+    };
+
     public static final List<Vec3i> TOWER_LOCATIONS = List.of(new Vec3i(5, -1, -1), new Vec3i(4, -1, 1), new Vec3i(2, -1, 2), new Vec3i(0, -1, 3), new Vec3i(-2, -1, 2), new Vec3i(-4, -1, 1), new Vec3i(-5, -1, -1));
 
     public AltarEntity(BlockPos pos, BlockState state) {
@@ -96,5 +118,19 @@ public class AltarEntity extends BlockEntity {
         if (tier1 > 10) return 1;
 
         return 0;
+    }
+
+    @Override
+    public void writeNbt(NbtCompound tag) {
+        tag.put("fluidVariant", storage.variant.toNbt());
+        tag.putLong("fluidAmount", storage.amount);
+        super.writeNbt(tag);
+    }
+
+    @Override
+    public void readNbt(NbtCompound tag) {
+        super.readNbt(tag);
+        storage.variant = FluidVariant.fromNbt(tag.getCompound("fluidVariant"));
+        storage.amount = tag.getLong("fluidAmount");
     }
 }

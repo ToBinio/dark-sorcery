@@ -52,5 +52,6 @@ public class ModBlocks {
 
     public static void initialize() {
         FluidStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> blockEntity.storage, BLOOD_FUNNEL_ENTITY_TYPE);
+        FluidStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> blockEntity.storage, ALTAR_ENTITY_TYPE);
     }
 }

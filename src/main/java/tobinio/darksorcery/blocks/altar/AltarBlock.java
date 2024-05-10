@@ -86,9 +86,11 @@ public class AltarBlock extends HorizontalFacingBlock implements BlockEntityProv
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
             BlockHitResult hit) {
 
-        player.sendMessage(Text.of("Level: " + ((AltarEntity) Objects.requireNonNull(world.getBlockEntity(pos))).getAltarLevel()), true);
+        AltarEntity altarEntity = (AltarEntity) Objects.requireNonNull(world.getBlockEntity(pos));
 
-        return ActionResult.SUCCESS;
+        player.sendMessage(Text.of("Level: %d capcity: %d/%d".formatted(altarEntity.getAltarLevel(), altarEntity.storage.getAmount(), altarEntity.storage.getCapacity())), true);
+
+        return ActionResult.CONSUME;
     }
 
 
