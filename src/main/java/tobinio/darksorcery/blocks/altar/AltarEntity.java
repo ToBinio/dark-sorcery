@@ -27,6 +27,8 @@ import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
  */
 public class AltarEntity extends BlockEntity {
 
+    public static final List<Vec3i> TOWER_LOCATIONS = List.of(new Vec3i(5, -1, -1), new Vec3i(4, -1, 1), new Vec3i(2, -1, 2), new Vec3i(0, -1, 3), new Vec3i(-2, -1, 2), new Vec3i(-4, -1, 1), new Vec3i(-5, -1, -1));
+
     public final SingleVariantStorage<FluidVariant> storage = new SingleVariantStorage<>() {
         @Override
         protected FluidVariant getBlankVariant() {
@@ -44,15 +46,16 @@ public class AltarEntity extends BlockEntity {
         }
     };
 
-    public static final List<Vec3i> TOWER_LOCATIONS = List.of(new Vec3i(5, -1, -1), new Vec3i(4, -1, 1), new Vec3i(2, -1, 2), new Vec3i(0, -1, 3), new Vec3i(-2, -1, 2), new Vec3i(-4, -1, 1), new Vec3i(-5, -1, -1));
+    int altarLevel = 0;
 
     public AltarEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.ALTAR_ENTITY_TYPE, pos, state);
     }
 
     public static void tick(World world, BlockPos pos, BlockState state, AltarEntity entity) {
-        int level = entity.getAltarLevel();
+        entity.updateAltar();
 
+        int level = entity.getAltarLevel();
         Integer lit_candles = state.get(LIT_CANDLES);
 
         if (lit_candles != level) {
@@ -60,7 +63,11 @@ public class AltarEntity extends BlockEntity {
         }
     }
 
-    public int getAltarLevel() {
+    private void updateAltar() {
+        altarLevel = calculateAltarLevel();
+    }
+
+    private int calculateAltarLevel() {
         if (world == null) {
             DarkSorcery.LOGGER.error("trying to get AltarLevel but world is null");
             return 0;
@@ -118,6 +125,10 @@ public class AltarEntity extends BlockEntity {
         if (tier1 > 10) return 1;
 
         return 0;
+    }
+
+    public int getAltarLevel() {
+        return this.altarLevel;
     }
 
     @Override
