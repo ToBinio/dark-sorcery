@@ -2,10 +2,18 @@ package tobinio.darksorcery.blocks.altar;
 
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.FilteringStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -29,7 +37,7 @@ public class AltarEntity extends BlockEntity {
 
     public static final List<Vec3i> TOWER_LOCATIONS = List.of(new Vec3i(5, -1, -1), new Vec3i(4, -1, 1), new Vec3i(2, -1, 2), new Vec3i(0, -1, 3), new Vec3i(-2, -1, 2), new Vec3i(-4, -1, 1), new Vec3i(-5, -1, -1));
 
-    public final SingleVariantStorage<FluidVariant> storage = new SingleVariantStorage<>() {
+    public final SingleVariantStorage<FluidVariant> fluidStorage = new SingleVariantStorage<>() {
         @Override
         protected FluidVariant getBlankVariant() {
             return FluidVariant.blank();
@@ -42,6 +50,24 @@ public class AltarEntity extends BlockEntity {
 
         @Override
         protected void onFinalCommit() {
+            markDirty();
+        }
+    };
+
+    public final SingleVariantStorage<ItemVariant> itemStorage = new SingleVariantStorage<>() {
+        @Override
+        protected ItemVariant getBlankVariant() {
+            return ItemVariant.blank();
+        }
+
+        @Override
+        protected long getCapacity(ItemVariant variant) {
+            return 1;
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
             markDirty();
         }
     };
@@ -133,15 +159,31 @@ public class AltarEntity extends BlockEntity {
 
     @Override
     public void writeNbt(NbtCompound tag) {
-        tag.put("fluidVariant", storage.variant.toNbt());
-        tag.putLong("fluidAmount", storage.amount);
+        tag.put("fluidVariant", fluidStorage.variant.toNbt());
+        tag.putLong("fluidAmount", fluidStorage.amount);
+
+        tag.put("itemVariant", itemStorage.variant.toNbt());
+        tag.putLong("itemAmount", itemStorage.amount);
         super.writeNbt(tag);
     }
 
     @Override
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
-        storage.variant = FluidVariant.fromNbt(tag.getCompound("fluidVariant"));
-        storage.amount = tag.getLong("fluidAmount");
+        fluidStorage.variant = FluidVariant.fromNbt(tag.getCompound("fluidVariant"));
+        fluidStorage.amount = tag.getLong("fluidAmount");
+
+        itemStorage.variant = ItemVariant.fromNbt(tag.getCompound("itemVariant"));
+        itemStorage.amount = tag.getLong("itemAmount");
+    }
+
+    @Override
+    public Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
+    }
+
+    @Override
+    public NbtCompound toInitialChunkDataNbt() {
+        return createNbt();
     }
 }

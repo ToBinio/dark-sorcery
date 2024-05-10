@@ -1,6 +1,7 @@
 package tobinio.darksorcery.blocks;
 
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
@@ -52,6 +53,8 @@ public class ModBlocks {
 
     public static void initialize() {
         FluidStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> blockEntity.storage, BLOOD_FUNNEL_ENTITY_TYPE);
-        FluidStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> blockEntity.storage, ALTAR_ENTITY_TYPE);
+
+        FluidStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> blockEntity.fluidStorage, ALTAR_ENTITY_TYPE);
+        ItemStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> blockEntity.itemStorage, ALTAR_ENTITY_TYPE);
     }
 }
