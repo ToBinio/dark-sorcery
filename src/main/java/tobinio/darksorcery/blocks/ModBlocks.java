@@ -1,9 +1,12 @@
 package tobinio.darksorcery.blocks;
 
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.FluidBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
@@ -16,6 +19,7 @@ import tobinio.darksorcery.blocks.altar.AltarBlock;
 import tobinio.darksorcery.blocks.altar.AltarEntity;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelBlock;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelEntity;
+import tobinio.darksorcery.fluids.ModFluids;
 
 /**
  * Created: 19.04.24
@@ -23,6 +27,9 @@ import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelEntity;
  * @author Tobias Frischmann
  */
 public class ModBlocks {
+
+    public static Block BLOOD = Registry.register(Registries.BLOCK, new Identifier(DarkSorcery.MOD_ID, "blood"), new FluidBlock(ModFluids.BLOOD, FabricBlockSettings.copy(Blocks.WATER)) {
+    });
 
     public static Block BLOOD_FUNNEL = register(new BloodFunnelBlock(AbstractBlock.Settings.create()), "blood_funnel", true);
     public static BlockEntityType<BloodFunnelEntity> BLOOD_FUNNEL_ENTITY_TYPE = registerBlockEntity(BlockEntityType.Builder.create(BloodFunnelEntity::new, BLOOD_FUNNEL)

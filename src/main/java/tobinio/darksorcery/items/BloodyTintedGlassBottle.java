@@ -5,9 +5,9 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.fluid.Fluids;
 import net.minecraft.item.*;
 import net.minecraft.util.ActionResult;
+import tobinio.darksorcery.fluids.ModFluids;
 
 /**
  * Created: 20.04.24
@@ -29,7 +29,7 @@ public class BloodyTintedGlassBottle extends Item {
         }
 
         try (Transaction transaction = Transaction.openOuter()) {
-            long insert = storage.insert(FluidVariant.of(Fluids.WATER), FluidConstants.BOTTLE, transaction);
+            long insert = storage.insert(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BOTTLE, transaction);
 
             if (insert == FluidConstants.BOTTLE) {
                 transaction.commit();

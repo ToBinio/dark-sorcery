@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.*;
 import net.minecraft.util.ActionResult;
+import tobinio.darksorcery.fluids.ModFluids;
 
 /**
  * Created: 20.04.24
@@ -29,7 +30,7 @@ public class TintedGlassBottle extends Item {
         }
 
         try (Transaction transaction = Transaction.openOuter()) {
-            long extract = storage.extract(FluidVariant.of(Fluids.WATER), FluidConstants.BOTTLE, transaction);
+            long extract = storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BOTTLE, transaction);
 
             if (extract == FluidConstants.BOTTLE) {
                 transaction.commit();

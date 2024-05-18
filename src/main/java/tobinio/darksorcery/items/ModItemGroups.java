@@ -9,6 +9,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import tobinio.darksorcery.DarkSorcery;
 import tobinio.darksorcery.blocks.ModBlocks;
+import tobinio.darksorcery.fluids.ModFluids;
 
 /**
  * Created: 21.04.24
@@ -19,7 +20,6 @@ public class ModItemGroups {
     public static final String ITEM_GROUP_KEY = "itemGroup.%s.dark-sorcery".formatted(DarkSorcery.MOD_ID);
     public static final ItemGroup ITEM_GROUP = Registry.register(Registries.ITEM_GROUP, new Identifier(DarkSorcery.MOD_ID, "item_group"), FabricItemGroup.builder()
             .displayName(Text.translatable(ITEM_GROUP_KEY))
-            //todo other item
             .icon(() -> new ItemStack(ModItems.TINTED_GLASS_BOTTLE))
             .entries((displayContext, entries) -> {
                 entries.add(ModItems.TINTED_GLASS_BOTTLE);
@@ -28,6 +28,8 @@ public class ModItemGroups {
 
                 entries.add(ModBlocks.BLOOD_FUNNEL);
                 entries.add(ModBlocks.ALTAR);
+
+                entries.add(ModFluids.BLOOD_BUCKET);
             })
             .build());
 

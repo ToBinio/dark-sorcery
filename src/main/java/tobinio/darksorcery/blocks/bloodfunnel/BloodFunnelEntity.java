@@ -6,12 +6,14 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.math.BlockPos;
 import tobinio.darksorcery.blocks.ModBlocks;
+import tobinio.darksorcery.fluids.ModFluids;
 
 /**
  * Created: 19.04.24
@@ -24,6 +26,11 @@ public class BloodFunnelEntity extends BlockEntity {
         @Override
         protected FluidVariant getBlankVariant() {
             return FluidVariant.blank();
+        }
+
+        @Override
+        protected boolean canInsert(FluidVariant variant) {
+            return variant.equals(FluidVariant.of(ModFluids.BLOOD));
         }
 
         @Override
@@ -47,6 +54,7 @@ public class BloodFunnelEntity extends BlockEntity {
         super.markDirty();
 
         if (this.world != null) {
+            //todo
 //            if (storage.getAmount() == FluidConstants.BOTTLE) {
 //                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, true));
 //            } else {

@@ -5,6 +5,7 @@ import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tobinio.darksorcery.blocks.ModBlocks;
+import tobinio.darksorcery.fluids.ModFluids;
 import tobinio.darksorcery.items.ModItemGroups;
 import tobinio.darksorcery.items.ModItems;
 import tobinio.darksorcery.tags.ModTags;
@@ -19,5 +20,6 @@ public class DarkSorcery implements ModInitializer {
         ModItems.initialize();
         ModItemGroups.initialize();
         ModTags.initialize();
+        ModFluids.initialize();
     }
 }

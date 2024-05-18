@@ -22,6 +22,7 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import tobinio.darksorcery.DarkSorcery;
 import tobinio.darksorcery.blocks.ModBlocks;
+import tobinio.darksorcery.fluids.ModFluids;
 import tobinio.darksorcery.tags.ModTags;
 
 import java.util.List;
@@ -41,6 +42,10 @@ public class AltarEntity extends BlockEntity {
         @Override
         protected FluidVariant getBlankVariant() {
             return FluidVariant.blank();
+        }
+
+        protected boolean canInsert(FluidVariant variant) {
+            return variant.equals(FluidVariant.of(ModFluids.BLOOD));
         }
 
         @Override
