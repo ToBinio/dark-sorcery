@@ -3,9 +3,13 @@ package tobinio.darksorcery.blocks.bloodfunnel;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.math.BlockPos;
 import tobinio.darksorcery.blocks.ModBlocks;
 
@@ -24,11 +28,12 @@ public class BloodFunnelEntity extends BlockEntity {
 
         @Override
         protected long getCapacity(FluidVariant variant) {
-            return FluidConstants.BOTTLE;
+            return FluidConstants.BUCKET;
         }
 
         @Override
         protected void onFinalCommit() {
+            world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
             markDirty();
         }
     };
@@ -42,11 +47,11 @@ public class BloodFunnelEntity extends BlockEntity {
         super.markDirty();
 
         if (this.world != null) {
-            if (storage.getAmount() == FluidConstants.BOTTLE) {
-                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, true));
-            } else {
-                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, false));
-            }
+//            if (storage.getAmount() == FluidConstants.BOTTLE) {
+//                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, true));
+//            } else {
+//                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, false));
+//            }
         }
     }
 
@@ -62,5 +67,15 @@ public class BloodFunnelEntity extends BlockEntity {
         super.readNbt(tag);
         storage.variant = FluidVariant.fromNbt(tag.getCompound("fluidVariant"));
         storage.amount = tag.getLong("fluidAmount");
+    }
+
+    @Override
+    public Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
+    }
+
+    @Override
+    public NbtCompound toInitialChunkDataNbt() {
+        return createNbt();
     }
 }
