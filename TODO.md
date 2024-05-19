@@ -7,3 +7,8 @@
         * altar towers
 * custom crafting
 * connect altar with funnel
+* sounds
+    * fluid interactions
+        * pickup with bucket
+        * interact with funnel
+    * place item on altar

@@ -17,8 +17,8 @@ import tobinio.darksorcery.DarkSorcery;
 public class ModItems {
 
     public static final Item BLOOD_BLADE = register(new BloodBlade(ToolMaterials.IRON, 6, -3.1f, new FabricItemSettings()), "blood_blade");
-    public static final Item TINTED_GLASS_BOTTLE = register(new TintedGlassBottle(new FabricItemSettings()), "tinted_glass_bottle");
-    public static final Item BLOODY_TINTED_GLASS_BOTTLE = register(new BloodyTintedGlassBottle(new FabricItemSettings()), "bloody_tinted_glass_bottle");
+    public static final Item TINTED_GLASS_BOTTLE = register(new Item(new FabricItemSettings()), "tinted_glass_bottle");
+    public static final Item BLOODY_TINTED_GLASS_BOTTLE = register(new Item(new FabricItemSettings()), "bloody_tinted_glass_bottle");
 
     public static <T extends Item> T register(T item, String ID) {
         Identifier itemID = new Identifier(DarkSorcery.MOD_ID, ID);

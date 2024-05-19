@@ -1,18 +1,34 @@
 package tobinio.darksorcery.blocks.bloodfunnel;
 
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsage;
+import net.minecraft.item.Items;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.function.BooleanBiFunction;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import tobinio.darksorcery.DarkSorcery;
+import tobinio.darksorcery.fluids.ModFluids;
+import tobinio.darksorcery.items.ModItems;
 
 /**
  * Created: 19.04.24
@@ -35,6 +51,68 @@ public class BloodFunnelBlock extends Block implements BlockEntityProvider {
     public BloodFunnelBlock(Settings settings) {
         super(settings);
         setDefaultState(getDefaultState().with(FILLED, false));
+    }
+
+    @Override
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
+            BlockHitResult hit) {
+
+        ItemStack item = player.getStackInHand(hand);
+        Storage<FluidVariant> storage = FluidStorage.SIDED.find(world, pos, hit.getSide());
+
+        if (storage == null) {
+            return super.onUse(state, world, pos, player, hand, hit);
+        }
+
+        if (item.isOf(ModItems.TINTED_GLASS_BOTTLE)) {
+            try (Transaction transaction = Transaction.openOuter()) {
+                long extract = storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BOTTLE, transaction);
+
+                if (extract == FluidConstants.BOTTLE) {
+                    transaction.commit();
+                    player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.BLOODY_TINTED_GLASS_BOTTLE)));
+                    return ActionResult.SUCCESS;
+                }
+            }
+        }
+
+        if (item.isOf(ModItems.BLOODY_TINTED_GLASS_BOTTLE)) {
+            try (Transaction transaction = Transaction.openOuter()) {
+                long insert = storage.insert(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BOTTLE, transaction);
+
+                if (insert == FluidConstants.BOTTLE) {
+                    transaction.commit();
+                    player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.TINTED_GLASS_BOTTLE)));
+                    return ActionResult.SUCCESS;
+                }
+            }
+        }
+
+        if (item.isOf(Items.BUCKET)) {
+            try (Transaction transaction = Transaction.openOuter()) {
+                long extract = storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BUCKET, transaction);
+
+                if (extract == FluidConstants.BUCKET) {
+                    transaction.commit();
+                    player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModFluids.BLOOD_BUCKET)));
+                    return ActionResult.SUCCESS;
+                }
+            }
+        }
+
+        if (item.isOf(ModFluids.BLOOD_BUCKET)) {
+            try (Transaction transaction = Transaction.openOuter()) {
+                long insert = storage.insert(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BUCKET, transaction);
+
+                if (insert == FluidConstants.BUCKET) {
+                    transaction.commit();
+                    player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(Items.BUCKET)));
+                    return ActionResult.SUCCESS;
+                }
+            }
+        }
+
+        return super.onUse(state, world, pos, player, hand, hit);
     }
 
     @Override
