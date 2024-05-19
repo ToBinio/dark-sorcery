@@ -28,7 +28,7 @@ import tobinio.darksorcery.fluids.ModFluids;
  */
 public class ModBlocks {
 
-    public static Block BLOOD = Registry.register(Registries.BLOCK, new Identifier(DarkSorcery.MOD_ID, "blood"), new FluidBlock(ModFluids.BLOOD, FabricBlockSettings.copy(Blocks.LAVA)) {
+    public static Block BLOOD = Registry.register(Registries.BLOCK, new Identifier(DarkSorcery.MOD_ID, "blood"), new FluidBlock(ModFluids.BLOOD, FabricBlockSettings.copy(Blocks.WATER)) {
     });
 
     public static Block BLOOD_FUNNEL = register(new BloodFunnelBlock(AbstractBlock.Settings.create()), "blood_funnel", true);

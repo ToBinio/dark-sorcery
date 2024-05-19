@@ -14,7 +14,4 @@
     * better particulars
     * check if exist remove else
 * sounds
-    * fluid interactions
-        * pickup with bucket
-        * interact with funnel
     * place item on altar

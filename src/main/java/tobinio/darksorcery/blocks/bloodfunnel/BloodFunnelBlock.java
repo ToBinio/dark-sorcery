@@ -14,6 +14,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsage;
 import net.minecraft.item.Items;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.util.ActionResult;
@@ -26,7 +28,6 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import tobinio.darksorcery.DarkSorcery;
 import tobinio.darksorcery.fluids.ModFluids;
 import tobinio.darksorcery.items.ModItems;
 
@@ -71,6 +72,7 @@ public class BloodFunnelBlock extends Block implements BlockEntityProvider {
                 if (extract == FluidConstants.BOTTLE) {
                     transaction.commit();
                     player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.BLOODY_TINTED_GLASS_BOTTLE)));
+                    player.playSound(SoundEvents.ITEM_BOTTLE_FILL, 1.0F, 1.0F);
                     return ActionResult.SUCCESS;
                 }
             }
@@ -83,6 +85,7 @@ public class BloodFunnelBlock extends Block implements BlockEntityProvider {
                 if (insert == FluidConstants.BOTTLE) {
                     transaction.commit();
                     player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.TINTED_GLASS_BOTTLE)));
+                    world.playSound(player, pos, SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
                     return ActionResult.SUCCESS;
                 }
             }
@@ -95,6 +98,7 @@ public class BloodFunnelBlock extends Block implements BlockEntityProvider {
                 if (extract == FluidConstants.BUCKET) {
                     transaction.commit();
                     player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModFluids.BLOOD_BUCKET)));
+                    player.playSound(ModFluids.BLOOD.getBucketFillSound().get(), 1.0F, 1.0F);
                     return ActionResult.SUCCESS;
                 }
             }
@@ -107,6 +111,7 @@ public class BloodFunnelBlock extends Block implements BlockEntityProvider {
                 if (insert == FluidConstants.BUCKET) {
                     transaction.commit();
                     player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(Items.BUCKET)));
+                    world.playSound(player, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
                     return ActionResult.SUCCESS;
                 }
             }

@@ -3,10 +3,14 @@ package tobinio.darksorcery.fluids;
 import net.minecraft.block.BlockState;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import tobinio.darksorcery.blocks.ModBlocks;
+
+import java.util.Optional;
 
 /**
  * Created: 18.05.24
@@ -33,6 +37,12 @@ public abstract class BloodFluid extends BaseFluid {
     @Override
     protected BlockState toBlockState(FluidState fluidState) {
         return ModBlocks.BLOOD.getDefaultState().with(Properties.LEVEL_15, getBlockStateLevel(fluidState));
+    }
+
+    @Override
+    public Optional<SoundEvent> getBucketFillSound() {
+        //todo - custom sound?
+        return Fluids.WATER.getBucketFillSound();
     }
 
     public static class Flowing extends BloodFluid {
