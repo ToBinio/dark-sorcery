@@ -65,12 +65,11 @@ public class BloodFunnelEntity extends BlockEntity {
         super.markDirty();
 
         if (this.world != null) {
-            //todo
-//            if (storage.getAmount() == FluidConstants.BOTTLE) {
-//                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, true));
-//            } else {
-//                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, false));
-//            }
+            if (storage.getAmount() >= FluidConstants.BOTTLE) {
+                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, true));
+            } else {
+                this.world.setBlockState(this.pos, this.getCachedState().with(BloodFunnelBlock.FILLED, false));
+            }
         }
     }
 

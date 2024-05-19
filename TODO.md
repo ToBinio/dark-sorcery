@@ -2,7 +2,7 @@
 
 * custom fluid
     * fluid texture
-    * bucket interaction with funnel
+    * fix color in overworld
     * dynmaic fluid rendering
         * altar towers
 * custom crafting
