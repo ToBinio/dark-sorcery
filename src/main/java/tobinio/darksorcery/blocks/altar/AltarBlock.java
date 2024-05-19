@@ -158,7 +158,7 @@ public class AltarBlock extends HorizontalFacingBlock implements BlockEntityProv
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
             BlockEntityType<T> type) {
 
-        if (world.isClient || type != ModBlocks.ALTAR_ENTITY_TYPE) return null;
+        if (type != ModBlocks.ALTAR_ENTITY_TYPE) return null;
 
         return (world1, pos, state1, entity) -> AltarEntity.tick(world1, pos, state1, (AltarEntity) entity);
     }

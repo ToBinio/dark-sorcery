@@ -6,12 +6,13 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.fluid.Fluids;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import tobinio.darksorcery.blocks.ModBlocks;
 import tobinio.darksorcery.fluids.ModFluids;
 
@@ -47,6 +48,16 @@ public class BloodFunnelEntity extends BlockEntity {
 
     public BloodFunnelEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.BLOOD_FUNNEL_ENTITY_TYPE, pos, state);
+    }
+
+    public void spawnMarkParticle() {
+        assert world != null;
+        Random random = world.getRandom();
+
+        if (random.nextFloat() < 0.3) {
+            //todo custom particle
+            world.addImportantParticle(ParticleTypes.DAMAGE_INDICATOR, true, pos.getX() + random.nextFloat() * 0.8 + 0.1, pos.getY() + 0.5 + random.nextFloat() / 3, pos.getZ() + random.nextFloat() * 0.8 + 0.1, 0, -0.5, 0);
+        }
     }
 
     @Override

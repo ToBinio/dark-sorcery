@@ -25,6 +25,7 @@ public class ModItemGroups {
                 entries.add(ModItems.TINTED_GLASS_BOTTLE);
                 entries.add(ModItems.BLOODY_TINTED_GLASS_BOTTLE);
                 entries.add(ModItems.BLOOD_BLADE);
+                entries.add(ModItems.BLOOD_STAFF);
 
                 entries.add(ModBlocks.BLOOD_FUNNEL);
                 entries.add(ModBlocks.ALTAR);

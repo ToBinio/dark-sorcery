@@ -7,6 +7,12 @@
         * altar towers
 * custom crafting
 * connect altar with funnel
+    * max distance
+    * max count
+    * transfer blood
+    * remove again
+    * better particulars
+    * check if exist remove else
 * sounds
     * fluid interactions
         * pickup with bucket

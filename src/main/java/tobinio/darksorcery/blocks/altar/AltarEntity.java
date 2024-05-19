@@ -3,14 +3,14 @@ package tobinio.darksorcery.blocks.altar;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.FilteringStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
@@ -22,9 +22,11 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import tobinio.darksorcery.DarkSorcery;
 import tobinio.darksorcery.blocks.ModBlocks;
+import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelEntity;
 import tobinio.darksorcery.fluids.ModFluids;
 import tobinio.darksorcery.tags.ModTags;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
@@ -77,20 +79,31 @@ public class AltarEntity extends BlockEntity {
         }
     };
 
-    int altarLevel = 0;
+    private int altarLevel = 0;
+    private final List<BlockPos> connectionFunnels = new ArrayList<>();
 
     public AltarEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.ALTAR_ENTITY_TYPE, pos, state);
     }
 
     public static void tick(World world, BlockPos pos, BlockState state, AltarEntity entity) {
-        entity.updateAltar();
+        if (!world.isClient()) {
+            entity.updateAltar();
 
-        int level = entity.getAltarLevel();
-        Integer lit_candles = state.get(LIT_CANDLES);
+            int level = entity.getAltarLevel();
+            Integer lit_candles = state.get(LIT_CANDLES);
 
-        if (lit_candles != level) {
-            world.setBlockState(pos, state.with(LIT_CANDLES, level));
+            if (lit_candles != level) {
+                world.setBlockState(pos, state.with(LIT_CANDLES, level));
+            }
+        }
+
+        for (BlockPos connectionFunnel : entity.connectionFunnels) {
+            BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
+
+            if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
+                bloodFunnelEntity.spawnMarkParticle();
+            }
         }
     }
 
@@ -169,6 +182,15 @@ public class AltarEntity extends BlockEntity {
 
         tag.put("itemVariant", itemStorage.variant.toNbt());
         tag.putLong("itemAmount", itemStorage.amount);
+
+        NbtList list = new NbtList();
+
+        for (BlockPos connectionFunnel : connectionFunnels) {
+            list.add(NbtHelper.fromBlockPos(connectionFunnel));
+        }
+
+        tag.put("connectedFunnels", list);
+
         super.writeNbt(tag);
     }
 
@@ -180,6 +202,13 @@ public class AltarEntity extends BlockEntity {
 
         itemStorage.variant = ItemVariant.fromNbt(tag.getCompound("itemVariant"));
         itemStorage.amount = tag.getLong("itemAmount");
+
+        connectionFunnels.clear();
+        var list = tag.getList("connectedFunnels", NbtList.COMPOUND_TYPE);
+
+        for (NbtElement nbtElement : list) {
+            connectionFunnels.add(NbtHelper.toBlockPos((NbtCompound) nbtElement));
+        }
     }
 
     @Override
@@ -190,5 +219,12 @@ public class AltarEntity extends BlockEntity {
     @Override
     public NbtCompound toInitialChunkDataNbt() {
         return createNbt();
+    }
+
+    public void addConnectedFunnel(BlockPos pos) {
+        connectionFunnels.add(pos);
+
+        world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
+        markDirty();
     }
 }
