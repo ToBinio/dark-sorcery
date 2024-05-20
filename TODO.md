@@ -10,12 +10,11 @@
     * max distance
     * max count
     * fix outline overlap problem..
+    * particle from funnel to altar
 * sounds
     * place item on altar
-* move transfer handling back to bucket & bottle
 * item settings
     * set item stack limits
 * block settings
     * block break speed
     * loot table
-* list of items not place able on altar (bucket, bottle, staff,...)

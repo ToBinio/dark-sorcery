@@ -26,11 +26,10 @@ public class ModItemGroups {
                 entries.add(ModItems.BLOODY_TINTED_GLASS_BOTTLE);
                 entries.add(ModItems.BLOOD_BLADE);
                 entries.add(ModItems.BLOOD_STAFF);
+                entries.add(ModItems.BLOOD_BUCKET);
 
                 entries.add(ModBlocks.BLOOD_FUNNEL);
                 entries.add(ModBlocks.ALTAR);
-
-                entries.add(ModFluids.BLOOD_BUCKET);
             })
             .build());
 

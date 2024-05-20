@@ -42,12 +42,10 @@ import tobinio.darksorcery.items.ModItems;
 public class BloodFunnelBlock extends Block implements BlockEntityProvider {
 
     public static final VoxelShape TOP_CUT_OUT = VoxelShapes.cuboid(2 / 16f, 5 / 16f, 2 / 16f, 14 / 16f, 8 / 16f, 14 / 16f);
-    public static final VoxelShape TOP = VoxelShapes.combine(VoxelShapes.cuboid(0, 5 / 16f, 0, 1, 8 / 16f, 1),
-            TOP_CUT_OUT, BooleanBiFunction.ONLY_FIRST);
+    public static final VoxelShape TOP = VoxelShapes.combine(VoxelShapes.cuboid(0, 5 / 16f, 0, 1, 8 / 16f, 1), TOP_CUT_OUT, BooleanBiFunction.ONLY_FIRST);
 
     public static final VoxelShape BOTTOM_CUT_OUT = VoxelShapes.union(VoxelShapes.cuboid(3 / 16f, 0, 0, 13 / 16f, 3 / 16f, 1), VoxelShapes.cuboid(0, 0, 3 / 16f, 1, 3 / 16f, 13 / 16f));
-    public static final VoxelShape BOTTOM = VoxelShapes.combine(VoxelShapes.cuboid(1 / 16f, 0, 1 / 16f, 15 / 16f, 5 / 16f, 15 / 16f),
-            BOTTOM_CUT_OUT, BooleanBiFunction.ONLY_FIRST);
+    public static final VoxelShape BOTTOM = VoxelShapes.combine(VoxelShapes.cuboid(1 / 16f, 0, 1 / 16f, 15 / 16f, 5 / 16f, 15 / 16f), BOTTOM_CUT_OUT, BooleanBiFunction.ONLY_FIRST);
     public static final VoxelShape VOXEL_SHAPE = VoxelShapes.union(BOTTOM, TOP);
 
     public static final BooleanProperty FILLED = BooleanProperty.of("filled");
@@ -55,72 +53,6 @@ public class BloodFunnelBlock extends Block implements BlockEntityProvider {
     public BloodFunnelBlock(Settings settings) {
         super(settings);
         setDefaultState(getDefaultState().with(FILLED, false));
-    }
-
-    @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
-            BlockHitResult hit) {
-
-        ItemStack item = player.getStackInHand(hand);
-        Storage<FluidVariant> storage = FluidStorage.SIDED.find(world, pos, hit.getSide());
-
-        if (storage == null) {
-            return super.onUse(state, world, pos, player, hand, hit);
-        }
-
-        if (item.isOf(ModItems.TINTED_GLASS_BOTTLE)) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                long extract = storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BOTTLE, transaction);
-
-                if (extract == FluidConstants.BOTTLE) {
-                    transaction.commit();
-                    player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.BLOODY_TINTED_GLASS_BOTTLE)));
-                    player.playSound(SoundEvents.ITEM_BOTTLE_FILL, 1.0F, 1.0F);
-                    return ActionResult.SUCCESS;
-                }
-            }
-        }
-
-        if (item.isOf(ModItems.BLOODY_TINTED_GLASS_BOTTLE)) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                long insert = storage.insert(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BOTTLE, transaction);
-
-                if (insert == FluidConstants.BOTTLE) {
-                    transaction.commit();
-                    player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.TINTED_GLASS_BOTTLE)));
-                    world.playSound(player, pos, SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                    return ActionResult.SUCCESS;
-                }
-            }
-        }
-
-        if (item.isOf(Items.BUCKET)) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                long extract = storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BUCKET, transaction);
-
-                if (extract == FluidConstants.BUCKET) {
-                    transaction.commit();
-                    player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModFluids.BLOOD_BUCKET)));
-                    player.playSound(ModFluids.BLOOD.getBucketFillSound().get(), 1.0F, 1.0F);
-                    return ActionResult.SUCCESS;
-                }
-            }
-        }
-
-        if (item.isOf(ModFluids.BLOOD_BUCKET)) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                long insert = storage.insert(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BUCKET, transaction);
-
-                if (insert == FluidConstants.BUCKET) {
-                    transaction.commit();
-                    player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(Items.BUCKET)));
-                    world.playSound(player, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                    return ActionResult.SUCCESS;
-                }
-            }
-        }
-
-        return super.onUse(state, world, pos, player, hand, hit);
     }
 
     @Override

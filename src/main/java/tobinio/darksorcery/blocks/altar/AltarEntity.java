@@ -90,42 +90,39 @@ public class AltarEntity extends BlockEntity {
     }
 
     public static void tick(World world, BlockPos pos, BlockState state, AltarEntity entity) {
-        if (!world.isClient()) {
-            entity.updateAltar();
+        entity.updateAltar();
 
-            int level = entity.getAltarLevel();
-            Integer lit_candles = state.get(LIT_CANDLES);
+        int level = entity.getAltarLevel();
+        Integer lit_candles = state.get(LIT_CANDLES);
 
-            if (lit_candles != level) {
-                world.setBlockState(pos, state.with(LIT_CANDLES, level));
-            }
+        if (lit_candles != level) {
+            world.setBlockState(pos, state.with(LIT_CANDLES, level));
+        }
 
 
-            entity.extractionTick--;
+        entity.extractionTick--;
 
-            if (entity.extractionTick <= 0) {
-                for (BlockPos connectionFunnel : entity.connectionFunnels) {
-                    BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
+        if (entity.extractionTick <= 0) {
+            for (BlockPos connectionFunnel : entity.connectionFunnels) {
+                BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
 
-                    if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
-                        try (var transaction = Transaction.openOuter()) {
-                            long extract = bloodFunnelEntity.storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.INGOT, transaction);
+                if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
+                    try (var transaction = Transaction.openOuter()) {
+                        long extract = bloodFunnelEntity.storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.INGOT, transaction);
 
-                            if (extract != 0) {
-                                long insert = entity.fluidStorage.insert(FluidVariant.of(ModFluids.BLOOD), extract, transaction);
+                        if (extract != 0) {
+                            long insert = entity.fluidStorage.insert(FluidVariant.of(ModFluids.BLOOD), extract, transaction);
 
-                                if (insert == extract) {
-                                    transaction.commit();
-                                }
+                            if (insert == extract) {
+                                transaction.commit();
                             }
                         }
                     }
                 }
-
-                entity.extractionTick = 20;
             }
-        }
 
+            entity.extractionTick = 20;
+        }
 
         entity.connectionFunnels.removeIf(blockPos -> {
             BlockEntity blockEntity = world.getBlockEntity(blockPos);

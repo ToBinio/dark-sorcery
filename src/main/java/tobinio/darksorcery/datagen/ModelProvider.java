@@ -29,7 +29,6 @@ public class ModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.BLOOD_STAFF, Models.GENERATED);
         itemModelGenerator.register(ModItems.TINTED_GLASS_BOTTLE, Models.GENERATED);
         itemModelGenerator.register(ModItems.BLOODY_TINTED_GLASS_BOTTLE, Models.GENERATED);
-
-        itemModelGenerator.register(ModFluids.BLOOD_BUCKET, Models.GENERATED);
+        itemModelGenerator.register(ModItems.BLOOD_BUCKET, Models.GENERATED);
     }
 }

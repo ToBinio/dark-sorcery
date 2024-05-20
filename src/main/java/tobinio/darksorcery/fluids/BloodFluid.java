@@ -9,6 +9,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import tobinio.darksorcery.blocks.ModBlocks;
+import tobinio.darksorcery.items.ModItems;
 
 import java.util.Optional;
 
@@ -31,7 +32,7 @@ public abstract class BloodFluid extends BaseFluid {
 
     @Override
     public Item getBucketItem() {
-        return ModFluids.BLOOD_BUCKET;
+        return ModItems.BLOOD_BUCKET;
     }
 
     @Override
