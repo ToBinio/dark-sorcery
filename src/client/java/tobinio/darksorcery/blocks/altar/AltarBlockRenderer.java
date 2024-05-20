@@ -28,15 +28,14 @@ public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
         ItemVariant itemVariant = entity.itemStorage.getResource();
 
         if (!itemVariant.isBlank()) {
-            double offset = Math.sin((entity.getWorld().getTime() + tickDelta) / 8.0) / 4.0;
-            matrices.translate(0.5, 1.25 + offset, 0.5);
+            double offset = Math.sin((entity.getWorld().getTime() + tickDelta) / 8.0) / 8.0;
 
+            matrices.translate(0.5, 1 + offset, 0.5);
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((entity.getWorld().getTime() + tickDelta) * 4));
 
             MinecraftClient.getInstance()
                     .getItemRenderer()
                     .renderItem(itemVariant.toStack(), ModelTransformationMode.GROUND, light, overlay, matrices, vertexConsumers, entity.getWorld(), 0);
-
         }
 
         matrices.pop();

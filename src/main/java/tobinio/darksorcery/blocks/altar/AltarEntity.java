@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
@@ -15,7 +16,11 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -23,6 +28,7 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import tobinio.darksorcery.DarkSorcery;
 import tobinio.darksorcery.blocks.ModBlocks;
+import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelBlock;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelEntity;
 import tobinio.darksorcery.fluids.ModFluids;
 import tobinio.darksorcery.tags.ModTags;
@@ -30,6 +36,7 @@ import tobinio.darksorcery.tags.ModTags;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.minecraft.block.Block.replace;
 import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
 
 /**
@@ -83,6 +90,7 @@ public class AltarEntity extends BlockEntity {
     private int altarLevel = 0;
 
     private final List<BlockPos> connectionFunnels = new ArrayList<>();
+    private final List<BlockPos> extractingFunnels = new ArrayList<>();
     private int extractionTick = 0;
 
     public AltarEntity(BlockPos pos, BlockState state) {
@@ -99,10 +107,12 @@ public class AltarEntity extends BlockEntity {
             world.setBlockState(pos, state.with(LIT_CANDLES, level));
         }
 
-
+        //extract from funnels
         entity.extractionTick--;
 
         if (entity.extractionTick <= 0) {
+            entity.extractingFunnels.clear();
+
             for (BlockPos connectionFunnel : entity.connectionFunnels) {
                 BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
 
@@ -115,6 +125,7 @@ public class AltarEntity extends BlockEntity {
 
                             if (insert == extract) {
                                 transaction.commit();
+                                entity.extractingFunnels.add(connectionFunnel);
                             }
                         }
                     }
@@ -124,10 +135,37 @@ public class AltarEntity extends BlockEntity {
             entity.extractionTick = 20;
         }
 
+        //removed destroyed funnels
         entity.connectionFunnels.removeIf(blockPos -> {
             BlockEntity blockEntity = world.getBlockEntity(blockPos);
-            return !(blockEntity instanceof BloodFunnelEntity);
+
+            if (!(blockEntity instanceof BloodFunnelEntity)) {
+                BloodFunnelBlock.disableEffect(world, blockPos);
+                return true;
+            }
+
+            return false;
         });
+
+        //render movement particles
+        if (world.isClient) {
+            var progress = (20f - entity.getExtractionTick()) / 20;
+
+            for (BlockPos extractingFunnel : entity.getExtractingFunnels()) {
+
+                Vec3d altarPos = entity.getPos().toCenterPos().add(0, 0.5, 0);
+                Vec3d FunnelPos = extractingFunnel.toCenterPos().add(0, 0.5, 0);
+
+                Vec3d dif = altarPos.subtract(FunnelPos);
+                var offset = dif.multiply(progress);
+                var currentPos = FunnelPos.add(offset);
+
+                //todo better particle
+                entity.getWorld()
+                        .addParticle(ParticleTypes.CRIT, currentPos.getX(), currentPos.getY(), currentPos.getZ(), 0, 0, 0);
+            }
+        }
+
     }
 
     private void updateAltar() {
@@ -244,12 +282,20 @@ public class AltarEntity extends BlockEntity {
         return createNbt();
     }
 
-    public void toggleConnectedFunnel(BlockPos pos) {
+    public void toggleConnectedFunnel(BlockPos pos, PlayerEntity player) {
+        assert world != null;
 
         if (connectionFunnels.contains(pos)) {
             connectionFunnels.remove(pos);
+            BloodFunnelBlock.disableEffect(world, pos);
         } else {
-            connectionFunnels.add(pos);
+
+            if (pos.isWithinDistance(getPos(), 10)) {
+                connectionFunnels.add(pos);
+            } else {
+                BloodFunnelBlock.disableEffect(world, pos);
+                player.sendMessage(Text.of("To far away"), true);
+            }
         }
 
         world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
@@ -258,5 +304,13 @@ public class AltarEntity extends BlockEntity {
 
     public List<BlockPos> getConnectionFunnels() {
         return connectionFunnels;
+    }
+
+    public List<BlockPos> getExtractingFunnels() {
+        return extractingFunnels;
+    }
+
+    public int getExtractionTick() {
+        return extractionTick;
     }
 }

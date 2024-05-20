@@ -2,37 +2,26 @@ package tobinio.darksorcery.blocks.bloodfunnel;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.item.Items;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.function.BooleanBiFunction;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import tobinio.darksorcery.blockHighlight.BlockHighlightManager;
-import tobinio.darksorcery.fluids.ModFluids;
-import tobinio.darksorcery.items.ModItems;
 
 /**
  * Created: 19.04.24
@@ -75,5 +64,16 @@ public class BloodFunnelBlock extends Block implements BlockEntityProvider {
     @Environment (EnvType.CLIENT)
     public static void highlightBLock(BlockPos pos, int time) {
         BlockHighlightManager.INSTANCE.highlightBlock(pos, time);
+    }
+
+    public static void disableEffect(World world, BlockPos pos) {
+
+        Random random = world.getRandom();
+
+        for (int i = 10; i > 0; i--) {
+            world.addParticle(ParticleTypes.DAMAGE_INDICATOR, pos.getX() + random.nextFloat(), pos.getY() + random.nextFloat() / 3 + 0.5, pos.getZ() + random.nextFloat(), 0.0, -0.3, 0.0);
+        }
+
+        world.playSound(pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 1.0F, 1.0F, true);
     }
 }

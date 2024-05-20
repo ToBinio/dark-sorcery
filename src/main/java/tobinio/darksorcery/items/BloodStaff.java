@@ -47,7 +47,7 @@ public class BloodStaff extends Item {
 
             if (connectedFunnel.isPresent()) {
                 BlockPos funnelPos = connectedFunnel.get();
-                altar.toggleConnectedFunnel(funnelPos);
+                altar.toggleConnectedFunnel(funnelPos, context.getPlayer());
             }
 
             clearConnectedFunnel(stack);

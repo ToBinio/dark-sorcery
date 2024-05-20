@@ -7,10 +7,8 @@
         * altar towers
 * custom crafting
 * connect altar with funnel
-    * max distance
     * max count
     * fix outline overlap problem..
-    * particle from funnel to altar
 * sounds
     * place item on altar
 * item settings

@@ -42,10 +42,7 @@ public class BloodBottle extends Item {
             if (insert == FluidConstants.BOTTLE) {
                 transaction.commit();
                 player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.TINTED_GLASS_BOTTLE)));
-                System.out.println("playing sound!");
-                System.out.println(context.getWorld().isClient);
-                context.getWorld()
-                        .playSound(player, context.getBlockPos(), SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                player.playSound(SoundEvents.ITEM_BOTTLE_EMPTY, 1.0F, 1.0F);
                 return ActionResult.SUCCESS;
             }
         }
