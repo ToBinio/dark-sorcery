@@ -31,11 +31,15 @@ public class ModBlocks {
     public static Block BLOOD = Registry.register(Registries.BLOCK, new Identifier(DarkSorcery.MOD_ID, "blood"), new FluidBlock(ModFluids.BLOOD, FabricBlockSettings.copy(Blocks.WATER)) {
     });
 
-    public static Block BLOOD_FUNNEL = register(new BloodFunnelBlock(AbstractBlock.Settings.create()), "blood_funnel", true);
+    public static Block BLOOD_FUNNEL = register(new BloodFunnelBlock(AbstractBlock.Settings.create()
+            .hardness(1.5f)
+            .requiresTool()), "blood_funnel", true);
     public static BlockEntityType<BloodFunnelEntity> BLOOD_FUNNEL_ENTITY_TYPE = registerBlockEntity(BlockEntityType.Builder.create(BloodFunnelEntity::new, BLOOD_FUNNEL)
             .build(), "blood_funnel_entity");
 
-    public static Block ALTAR = register(new AltarBlock(AbstractBlock.Settings.create()), "altar", true);
+    public static Block ALTAR = register(new AltarBlock(AbstractBlock.Settings.create()
+            .hardness(3f)
+            .requiresTool()), "altar", true);
     public static BlockEntityType<AltarEntity> ALTAR_ENTITY_TYPE = registerBlockEntity(BlockEntityType.Builder.create(AltarEntity::new, ALTAR)
             .build(), "altar_entity");
 

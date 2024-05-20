@@ -9,8 +9,6 @@
 * connect altar with funnel
     * max count
     * fix outline overlap problem..
+    * show connection when destroyed (particle line)
 * sounds
     * place item on altar
-* block settings
-    * block break speed
-    * loot table

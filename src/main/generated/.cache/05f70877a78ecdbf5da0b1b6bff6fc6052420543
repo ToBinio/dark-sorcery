@@ -1,8 +1,9 @@
-// 1.20.4	2024-05-19T14:46:42.648162589	Dark Sorcery/Tags for minecraft:block
+// 1.20.4	2024-05-20T21:38:21.6643943	Dark Sorcery/Tags for minecraft:block
 c48d8c8b12d016b9951c98c84526d5e5553545d6 data/dark-sorcery/tags/blocks/altar_tier3.json
 3b0e91342a62dda93b951c6f4b845debf8c27e72 data/dark-sorcery/tags/blocks/altar_tier4.json
 38ccc67b033efef42159f9f0098149187323002f data/dark-sorcery/tags/blocks/altar_tower.json
 da4f07c95e92c219f75ca8e9150a013cf022e011 data/dark-sorcery/tags/blocks/altar_tier5.json
+a57b95e03054c0de72dddfc3f6f3a8d102add8f0 data/minecraft/tags/blocks/mineable/pickaxe.json
 1592f4bea47c2c3ee92e037358a6f46c32b2a38a data/dark-sorcery/tags/blocks/altar_tier1.json
 892bac8881c4c51993a5566423e8132352698657 data/dark-sorcery/tags/blocks/altar_tier2.json
 83501e4dd4307a14ae4057f133ea7de824a9cbab data/dark-sorcery/tags/blocks/altar_ground.json
