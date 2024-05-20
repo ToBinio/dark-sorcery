@@ -11,8 +11,6 @@
     * fix outline overlap problem..
 * sounds
     * place item on altar
-* item settings
-    * set item stack limits
 * block settings
     * block break speed
     * loot table

@@ -26,7 +26,7 @@ public class BloodBlade extends SwordItem {
     public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         World world = target.getWorld();
 
-        //multi block pos
+        //todo - multi block pos
         BlockPos blockBelow = target.getBlockPos();
 
         if (target.isDead() && world.getBlockState(blockBelow).getBlock() == ModBlocks.BLOOD_FUNNEL) {
@@ -43,6 +43,6 @@ public class BloodBlade extends SwordItem {
             }
         }
 
-        return false;
+        return super.postHit(stack, target, attacker);
     }
 }

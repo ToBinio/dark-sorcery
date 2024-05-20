@@ -19,12 +19,13 @@ public class ModItems {
 
     public static final Item BLOOD_BLADE = register(new BloodBlade(ToolMaterials.IRON, 6, -3.1f, new FabricItemSettings()), "blood_blade");
     //todo - name WIP
-    public static final Item BLOOD_STAFF = register(new BloodStaff(new FabricItemSettings()), "blood_staff");
+    public static final Item BLOOD_STAFF = register(new BloodStaff(new FabricItemSettings().maxCount(1)), "blood_staff");
 
     public static final Item TINTED_GLASS_BOTTLE = register(new TintedBottle(new FabricItemSettings()), "tinted_glass_bottle");
-    public static final Item BLOODY_TINTED_GLASS_BOTTLE = register(new BloodBottle(new FabricItemSettings()), "bloody_tinted_glass_bottle");
+    public static final Item BLOODY_TINTED_GLASS_BOTTLE = register(new BloodBottle(new FabricItemSettings().maxCount(1)), "bloody_tinted_glass_bottle");
 
-    public static final Item BLOOD_BUCKET = register(new BloodBucket(new Item.Settings().recipeRemainder(Items.BUCKET)
+    public static final Item BLOOD_BUCKET = register(new BloodBucket(new Item.Settings().maxCount(1)
+            .recipeRemainder(Items.BUCKET)
             .maxCount(1)), "blood_bucket");
 
     public static <T extends Item> T register(T item, String ID) {
