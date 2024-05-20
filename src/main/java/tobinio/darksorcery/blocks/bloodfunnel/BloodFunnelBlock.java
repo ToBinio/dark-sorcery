@@ -1,5 +1,7 @@
 package tobinio.darksorcery.blocks.bloodfunnel;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -28,6 +30,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import tobinio.darksorcery.blockHighlight.BlockHighlightManager;
 import tobinio.darksorcery.fluids.ModFluids;
 import tobinio.darksorcery.items.ModItems;
 
@@ -135,5 +138,10 @@ public class BloodFunnelBlock extends Block implements BlockEntityProvider {
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new BloodFunnelEntity(pos, state);
+    }
+
+    @Environment (EnvType.CLIENT)
+    public static void highlightBLock(BlockPos pos, int time) {
+        BlockHighlightManager.INSTANCE.highlightBlock(pos, time);
     }
 }

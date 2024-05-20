@@ -28,6 +28,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import tobinio.darksorcery.blocks.ModBlocks;
+import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelBlock;
 import tobinio.darksorcery.mixin.AbstractCandleBlockInvoker;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public class AltarBlock extends HorizontalFacingBlock implements BlockEntityProv
     public static final MapCodec<AltarBlock> CODEC = AltarBlock.createCodec(AltarBlock::new);
 
     public static final VoxelShape TOP = VoxelShapes.cuboid(1 / 16f, 7 / 16f, 0f, 15 / 16f, 9 / 16f, 1f);
-    public static final VoxelShape BOTTOM = VoxelShapes.cuboid(2 / 16f, 0 / 16f, 1 / 16f, 14 / 16f, 6 / 16f, 15 / 16f);
+    public static final VoxelShape BOTTOM = VoxelShapes.cuboid(2 / 16f, 0 / 16f, 1 / 16f, 14 / 16f, 7 / 16f, 15 / 16f);
     public static final VoxelShape ALL = VoxelShapes.union(TOP, BOTTOM);
 
     public static final IntProperty LIT_CANDLES = IntProperty.of("lit_candles", 0, 5);
@@ -94,8 +95,11 @@ public class AltarBlock extends HorizontalFacingBlock implements BlockEntityProv
 
         if (!world.isClient()) {
             player.sendMessage(Text.of("Level: %d capcity: %d/%d".formatted(altarEntity.getAltarLevel(), altarEntity.fluidStorage.getAmount(), altarEntity.fluidStorage.getCapacity())), true);
+        } else {
+            for (BlockPos connectionFunnel : altarEntity.getConnectionFunnels()) {
+                BloodFunnelBlock.highlightBLock(connectionFunnel, 20);
+            }
         }
-
 
         ItemVariant storageItem = altarEntity.itemStorage.getResource();
         ItemStack playerItem = player.getStackInHand(Hand.MAIN_HAND);

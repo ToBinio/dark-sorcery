@@ -3,7 +3,7 @@
 	"package": "tobinio.darksorcery.mixin.client",
 	"compatibilityLevel": "JAVA_17",
 	"client": [
-		"ExampleClientMixin"
+		"WorldRendererAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

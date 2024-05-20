@@ -126,16 +126,11 @@ public class AltarEntity extends BlockEntity {
             }
         }
 
-        for (int i = entity.connectionFunnels.size() - 1; i >= 0; i--) {
-            BlockPos connectionFunnel = entity.connectionFunnels.get(i);
-            BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
 
-            if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
-                bloodFunnelEntity.spawnMarkParticle();
-            } else {
-                entity.connectionFunnels.remove(i);
-            }
-        }
+        entity.connectionFunnels.removeIf(blockPos -> {
+            BlockEntity blockEntity = world.getBlockEntity(blockPos);
+            return !(blockEntity instanceof BloodFunnelEntity);
+        });
     }
 
     private void updateAltar() {
@@ -262,5 +257,9 @@ public class AltarEntity extends BlockEntity {
 
         world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
         markDirty();
+    }
+
+    public List<BlockPos> getConnectionFunnels() {
+        return connectionFunnels;
     }
 }

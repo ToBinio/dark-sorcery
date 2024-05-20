@@ -11,6 +11,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import tobinio.darksorcery.blocks.altar.AltarEntity;
+import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelBlock;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelEntity;
 
 import java.util.Optional;
@@ -73,9 +74,8 @@ public class BloodStaff extends Item {
 
         if (!holdItem || connectedFunnel.isEmpty()) return;
 
-        BlockEntity blockEntity = world.getBlockEntity(connectedFunnel.get());
-        if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
-            bloodFunnelEntity.spawnMarkParticle();
+        if (world.isClient()) {
+            BloodFunnelBlock.highlightBLock(connectedFunnel.get(), 1);
         }
     }
 

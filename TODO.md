@@ -9,7 +9,7 @@
 * connect altar with funnel
     * max distance
     * max count
-    * better particulars
+    * fix outline overlap problem..
 * sounds
     * place item on altar
 * move transfer handling back to bucket & bottle
@@ -18,3 +18,4 @@
 * block settings
     * block break speed
     * loot table
+* list of items not place able on altar (bucket, bottle, staff,...)
