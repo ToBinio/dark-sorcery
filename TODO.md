@@ -9,9 +9,12 @@
 * connect altar with funnel
     * max distance
     * max count
-    * transfer blood
-    * remove again
     * better particulars
-    * check if exist remove else
 * sounds
     * place item on altar
+* move transfer handling back to bucket & bottle
+* item settings
+    * set item stack limits
+* block settings
+    * block break speed
+    * loot table

@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -80,7 +81,9 @@ public class AltarEntity extends BlockEntity {
     };
 
     private int altarLevel = 0;
+
     private final List<BlockPos> connectionFunnels = new ArrayList<>();
+    private int extractionTick = 0;
 
     public AltarEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.ALTAR_ENTITY_TYPE, pos, state);
@@ -96,13 +99,41 @@ public class AltarEntity extends BlockEntity {
             if (lit_candles != level) {
                 world.setBlockState(pos, state.with(LIT_CANDLES, level));
             }
+
+
+            entity.extractionTick--;
+
+            if (entity.extractionTick <= 0) {
+                for (BlockPos connectionFunnel : entity.connectionFunnels) {
+                    BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
+
+                    if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
+                        try (var transaction = Transaction.openOuter()) {
+                            long extract = bloodFunnelEntity.storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.INGOT, transaction);
+
+                            if (extract != 0) {
+                                long insert = entity.fluidStorage.insert(FluidVariant.of(ModFluids.BLOOD), extract, transaction);
+
+                                if (insert == extract) {
+                                    transaction.commit();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                entity.extractionTick = 20;
+            }
         }
 
-        for (BlockPos connectionFunnel : entity.connectionFunnels) {
+        for (int i = entity.connectionFunnels.size() - 1; i >= 0; i--) {
+            BlockPos connectionFunnel = entity.connectionFunnels.get(i);
             BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
 
             if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
                 bloodFunnelEntity.spawnMarkParticle();
+            } else {
+                entity.connectionFunnels.remove(i);
             }
         }
     }
@@ -221,8 +252,13 @@ public class AltarEntity extends BlockEntity {
         return createNbt();
     }
 
-    public void addConnectedFunnel(BlockPos pos) {
-        connectionFunnels.add(pos);
+    public void toggleConnectedFunnel(BlockPos pos) {
+
+        if (connectionFunnels.contains(pos)) {
+            connectionFunnels.remove(pos);
+        } else {
+            connectionFunnels.add(pos);
+        }
 
         world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
         markDirty();
