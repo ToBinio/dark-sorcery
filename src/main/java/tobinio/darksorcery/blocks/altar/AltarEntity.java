@@ -97,46 +97,51 @@ public class AltarEntity extends BlockEntity {
         super(ModBlocks.ALTAR_ENTITY_TYPE, pos, state);
     }
 
-    public static void tick(World world, BlockPos pos, BlockState state, AltarEntity entity) {
+    public static void tick(AltarEntity entity) {
         entity.updateAltar();
 
-        int level = entity.getAltarLevel();
-        Integer lit_candles = state.get(LIT_CANDLES);
+        entity.updateCandleLevel();
+        entity.tickConnectedFunnels();
+    }
 
-        if (lit_candles != level) {
-            world.setBlockState(pos, state.with(LIT_CANDLES, level));
+    private void updateCandleLevel() {
+        int level = this.getAltarLevel();
+        Integer lit_candles = this.getCachedState().get(LIT_CANDLES);
+
+        if (lit_candles != level && world != null) {
+            world.setBlockState(pos, this.getCachedState().with(LIT_CANDLES, level));
         }
+    }
 
-        //extract from funnels
-        entity.extractionTick--;
+    private void tickConnectedFunnels() {
+        this.removeDeletedFunnels();
 
-        if (entity.extractionTick <= 0) {
-            entity.extractingFunnels.clear();
-
-            for (BlockPos connectionFunnel : entity.connectionFunnels) {
-                BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
-
-                if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
-                    try (var transaction = Transaction.openOuter()) {
-                        long extract = bloodFunnelEntity.storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.INGOT, transaction);
-
-                        if (extract != 0) {
-                            long insert = entity.fluidStorage.insert(FluidVariant.of(ModFluids.BLOOD), extract, transaction);
-
-                            if (insert == extract) {
-                                transaction.commit();
-                                entity.extractingFunnels.add(connectionFunnel);
-                            }
-                        }
-                    }
-                }
-            }
-
-            entity.extractionTick = 20;
+        this.extractFromFunnel();
+        if (world.isClient) {
+            this.displayFunnelExtractionProgress();
         }
+    }
 
-        //removed destroyed funnels
-        entity.connectionFunnels.removeIf(blockPos -> {
+    private void displayFunnelExtractionProgress() {
+        var progress = (20f - this.getExtractionTick()) / 20;
+
+        for (BlockPos extractingFunnel : this.getExtractingFunnels()) {
+
+            Vec3d altarPos = this.getPos().toCenterPos().add(0, 0.5, 0);
+            Vec3d FunnelPos = extractingFunnel.toCenterPos().add(0, 0.5, 0);
+
+            Vec3d dif = altarPos.subtract(FunnelPos);
+            var offset = dif.multiply(progress);
+            var currentPos = FunnelPos.add(offset);
+
+            //todo better particle
+            this.world
+                    .addParticle(ParticleTypes.CRIT, currentPos.getX(), currentPos.getY(), currentPos.getZ(), 0, 0, 0);
+        }
+    }
+
+    private void removeDeletedFunnels() {
+        this.connectionFunnels.removeIf(blockPos -> {
             BlockEntity blockEntity = world.getBlockEntity(blockPos);
 
             if (!(blockEntity instanceof BloodFunnelEntity)) {
@@ -146,26 +151,35 @@ public class AltarEntity extends BlockEntity {
 
             return false;
         });
+    }
 
-        //render movement particles
-        if (world.isClient) {
-            var progress = (20f - entity.getExtractionTick()) / 20;
+    private void extractFromFunnel() {
+        this.extractionTick--;
 
-            for (BlockPos extractingFunnel : entity.getExtractingFunnels()) {
+        if (this.extractionTick <= 0) {
+            this.extractingFunnels.clear();
 
-                Vec3d altarPos = entity.getPos().toCenterPos().add(0, 0.5, 0);
-                Vec3d FunnelPos = extractingFunnel.toCenterPos().add(0, 0.5, 0);
+            for (BlockPos connectionFunnel : this.connectionFunnels) {
+                BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
 
-                Vec3d dif = altarPos.subtract(FunnelPos);
-                var offset = dif.multiply(progress);
-                var currentPos = FunnelPos.add(offset);
+                if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
+                    try (var transaction = Transaction.openOuter()) {
+                        long extract = bloodFunnelEntity.storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.INGOT, transaction);
 
-                //todo better particle
-                entity.getWorld()
-                        .addParticle(ParticleTypes.CRIT, currentPos.getX(), currentPos.getY(), currentPos.getZ(), 0, 0, 0);
+                        if (extract != 0) {
+                            long insert = this.fluidStorage.insert(FluidVariant.of(ModFluids.BLOOD), extract, transaction);
+
+                            if (insert == extract) {
+                                transaction.commit();
+                                this.extractingFunnels.add(connectionFunnel);
+                            }
+                        }
+                    }
+                }
             }
-        }
 
+            this.extractionTick = 20;
+        }
     }
 
     private void updateAltar() {
