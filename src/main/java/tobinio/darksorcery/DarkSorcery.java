@@ -6,6 +6,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tobinio.darksorcery.blocks.ModBlocks;
@@ -21,9 +25,6 @@ public class DarkSorcery implements ModInitializer {
     public static final String MOD_ID = "dark-sorcery";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    //wip
-    public static HashMap<Item, AltarRecipe> recipes = new HashMap<>();
-
     @Override
     public void onInitialize() {
         ModBlocks.initialize();
@@ -32,6 +33,7 @@ public class DarkSorcery implements ModInitializer {
         ModTags.initialize();
         ModFluids.initialize();
 
-        recipes.put(Items.DIRT, new AltarRecipe(Items.DIRT, Items.DIAMOND, 10_000, 120));
+        Registry.register(Registries.RECIPE_SERIALIZER, new Identifier(MOD_ID, "altar"), AltarRecipe.AltarRecipeSerializer.INSTANCE);
+        Registry.register(Registries.RECIPE_TYPE, new Identifier(MOD_ID, "altar"), AltarRecipe.Type.INSTANCE);
     }
 }

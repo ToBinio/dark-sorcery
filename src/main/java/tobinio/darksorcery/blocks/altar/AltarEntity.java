@@ -9,6 +9,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -18,6 +19,7 @@ import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -34,6 +36,7 @@ import tobinio.darksorcery.tags.ModTags;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
 
@@ -120,18 +123,20 @@ public class AltarEntity extends BlockEntity {
                 finishCrafting();
             }
         } else {
-            Item item = itemStorage.getResource().getItem();
-            AltarRecipe altarRecipe = DarkSorcery.recipes.get(item);
+            AltarRecipe altarRecipe = getCurrentRecipe();
 
             if (altarRecipe != null) {
-                craftingTime = altarRecipe.time();
+                craftingTime = altarRecipe.getTime();
             }
         }
     }
 
     private AltarRecipe getCurrentRecipe() {
-        Item item = itemStorage.getResource().getItem();
-        return DarkSorcery.recipes.get(item);
+        var item = itemStorage.getResource().toStack();
+        var recipe = world.getRecipeManager()
+                .getFirstMatch(AltarRecipe.Type.INSTANCE, new SimpleInventory(item), world);
+
+        return recipe.map(RecipeEntry::value).orElse(null);
     }
 
     private void finishCrafting() {
@@ -142,7 +147,7 @@ public class AltarEntity extends BlockEntity {
             long extract = this.itemStorage.extract(storedItem, 1, transaction);
 
             if (extract == 1) {
-                AltarBlock.spawnPopoutItem(world, pos, currentRecipe.output().getDefaultStack());
+                AltarBlock.spawnPopoutItem(world, pos, currentRecipe.getOutput());
                 transaction.commit();
             }
         }
@@ -151,7 +156,7 @@ public class AltarEntity extends BlockEntity {
     // returns rather the continuation was successful
     private boolean continueCrafting() {
         try (Transaction transaction = Transaction.openOuter()) {
-            int bloodPerTick = getCurrentRecipe().bloodConsumption() / getCurrentRecipe().time();
+            int bloodPerTick = getCurrentRecipe().getBloodConsumption() / getCurrentRecipe().getTime();
 
             long extract = this.fluidStorage.extract(FluidVariant.of(ModFluids.BLOOD), bloodPerTick, transaction);
 

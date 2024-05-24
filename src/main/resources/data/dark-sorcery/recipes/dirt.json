@@ -1,0 +1,9 @@
+{
+  "type": "dark-sorcery:altar",
+  "input": {
+    "item": "minecraft:dirt"
+  },
+  "output": "minecraft:diamond",
+  "blood_consumption": 10000,
+  "time": 120
+}

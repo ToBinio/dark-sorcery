@@ -17,8 +17,8 @@
 
 ### Custom Crafting
 
-* custom crafting recipe
 * emi integration
+* add level to recipe
 * improve crafting animation
     * fix animation being stuck when no more blood is available
 
