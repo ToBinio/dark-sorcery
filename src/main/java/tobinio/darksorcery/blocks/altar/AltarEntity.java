@@ -9,6 +9,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
@@ -17,26 +18,23 @@ import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.World;
 import tobinio.darksorcery.DarkSorcery;
 import tobinio.darksorcery.blocks.ModBlocks;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelBlock;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelEntity;
 import tobinio.darksorcery.fluids.ModFluids;
+import tobinio.darksorcery.recipe.AltarRecipe;
 import tobinio.darksorcery.tags.ModTags;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.minecraft.block.Block.replace;
 import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
 
 /**
@@ -65,6 +63,7 @@ public class AltarEntity extends BlockEntity {
 
         @Override
         protected void onFinalCommit() {
+            world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
             markDirty();
         }
     };
@@ -87,6 +86,8 @@ public class AltarEntity extends BlockEntity {
         }
     };
 
+    private int craftingTime = 0;
+
     private int altarLevel = 0;
 
     private final List<BlockPos> connectionFunnels = new ArrayList<>();
@@ -102,11 +103,91 @@ public class AltarEntity extends BlockEntity {
 
         entity.updateCandleLevel();
         entity.tickConnectedFunnels();
+
+        entity.craft();
+
+        entity.world.updateListeners(entity.pos, entity.getCachedState(), entity.getCachedState(), Block.NOTIFY_LISTENERS);
     }
+
+    private void craft() {
+        if (craftingTime != 0 && getCurrentRecipe() != null) {
+            //crafting in process
+            if (continueCrafting()) {
+                craftingTime--;
+            }
+
+            if (craftingTime == 0) {
+                finishCrafting();
+            }
+        } else {
+            Item item = itemStorage.getResource().getItem();
+            AltarRecipe altarRecipe = DarkSorcery.recipes.get(item);
+
+            if (altarRecipe != null) {
+                craftingTime = altarRecipe.time();
+            }
+        }
+    }
+
+    private AltarRecipe getCurrentRecipe() {
+        Item item = itemStorage.getResource().getItem();
+        return DarkSorcery.recipes.get(item);
+    }
+
+    private void finishCrafting() {
+        try (Transaction transaction = Transaction.openOuter()) {
+            AltarRecipe currentRecipe = getCurrentRecipe();
+
+            ItemVariant storedItem = this.itemStorage.getResource();
+            long extract = this.itemStorage.extract(storedItem, 1, transaction);
+
+            if (extract == 1) {
+                AltarBlock.spawnPopoutItem(world, pos, currentRecipe.output().getDefaultStack());
+                transaction.commit();
+            }
+        }
+    }
+
+    // returns rather the continuation was successful
+    private boolean continueCrafting() {
+        try (Transaction transaction = Transaction.openOuter()) {
+            int bloodPerTick = getCurrentRecipe().bloodConsumption() / getCurrentRecipe().time();
+
+            long extract = this.fluidStorage.extract(FluidVariant.of(ModFluids.BLOOD), bloodPerTick, transaction);
+
+            if (extract == bloodPerTick) {
+                transaction.commit();
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public void removeCurrentItem() {
+        craftingTime = 0;
+
+        ItemVariant storedItem = this.itemStorage.getResource();
+
+        if (!storedItem.isBlank()) {
+            try (Transaction transaction = Transaction.openOuter()) {
+                long extract = this.itemStorage.extract(storedItem, 1, transaction);
+
+                if (extract == 1) {
+                    AltarBlock.spawnPopoutItem(world, pos, storedItem.toStack());
+                    transaction.commit();
+                }
+            }
+        }
+    }
+
 
     private void updateCandleLevel() {
         int level = this.getAltarLevel();
         Integer lit_candles = this.getCachedState().get(LIT_CANDLES);
+
+        //todo - kill crafting in case the level changes / gets lower
 
         if (lit_candles != level && world != null) {
             world.setBlockState(pos, this.getCachedState().with(LIT_CANDLES, level));
@@ -117,8 +198,10 @@ public class AltarEntity extends BlockEntity {
         this.removeDeletedFunnels();
 
         this.extractFromFunnel();
+
         if (world.isClient) {
             this.displayFunnelExtractionProgress();
+            this.displayCraftingProgress();
         }
     }
 
@@ -135,9 +218,28 @@ public class AltarEntity extends BlockEntity {
             var currentPos = FunnelPos.add(offset);
 
             //todo better particle
-            this.world
-                    .addParticle(ParticleTypes.CRIT, currentPos.getX(), currentPos.getY(), currentPos.getZ(), 0, 0, 0);
+            this.world.addParticle(ParticleTypes.CRIT, currentPos.getX(), currentPos.getY(), currentPos.getZ(), 0, 0, 0);
         }
+    }
+
+    private void displayCraftingProgress() {
+        if (this.craftingTime == 0) return;
+
+        //todo - from recipe level
+        var lineCount = 3;
+
+        var value = (this.craftingTime % 40) / 40f * Math.PI * 2;
+        var pos = getPos().toCenterPos().add(0, 0.5, 0);
+
+        var radius = (Math.log(this.craftingTime + 2) - Math.log(2)) / 3;
+
+        var offsetPer = (Math.PI * 2) / lineCount;
+        for (int i = lineCount; i > 0; i--) {
+            var offset = offsetPer * i;
+
+            this.world.addParticle(ParticleTypes.DRIPPING_DRIPSTONE_LAVA, pos.getX() + Math.cos(value + offset) * radius, pos.getY() + Math.sin((value + offset) * 2) / 4, pos.getZ() + Math.sin(value + offset) * radius, 0, 0, 0);
+        }
+
     }
 
     private void removeDeletedFunnels() {
@@ -258,6 +360,8 @@ public class AltarEntity extends BlockEntity {
         tag.put("itemVariant", itemStorage.variant.toNbt());
         tag.putLong("itemAmount", itemStorage.amount);
 
+        tag.putInt("craftingTime", craftingTime);
+
         NbtList list = new NbtList();
 
         for (BlockPos connectionFunnel : connectionFunnels) {
@@ -277,6 +381,8 @@ public class AltarEntity extends BlockEntity {
 
         itemStorage.variant = ItemVariant.fromNbt(tag.getCompound("itemVariant"));
         itemStorage.amount = tag.getLong("itemAmount");
+
+        craftingTime = tag.getInt("craftingTime");
 
         connectionFunnels.clear();
         var list = tag.getList("connectedFunnels", NbtList.COMPOUND_TYPE);

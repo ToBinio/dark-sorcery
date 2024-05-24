@@ -101,48 +101,44 @@ public class AltarBlock extends HorizontalFacingBlock implements BlockEntityProv
             }
         }
 
-        ItemVariant storageItem = altarEntity.itemStorage.getResource();
-        ItemStack playerItem = player.getStackInHand(Hand.MAIN_HAND);
+        if (!player.isSneaking()) {
+            ItemVariant storageItem = altarEntity.itemStorage.getResource();
+            ItemStack playerItem = player.getStackInHand(Hand.MAIN_HAND);
 
-        if (!storageItem.isBlank()) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                long extract = altarEntity.itemStorage.extract(storageItem, 1, transaction);
-
-                if (extract == 1) {
-
-                    if (!world.isClient) {
-                        ItemEntity itemEntity = new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, storageItem.toStack());
-                        itemEntity.setToDefaultPickupDelay();
-                        world.spawnEntity(itemEntity);
-                    }
-
-                    transaction.commit();
-                    return ActionResult.SUCCESS;
-                }
+            if (!storageItem.isBlank()) {
+                altarEntity.removeCurrentItem();
             }
-        }
 
-        if (!playerItem.isEmpty() && storageItem.isBlank()) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                long inserted = altarEntity.itemStorage.insert(ItemVariant.of(playerItem), 1, transaction);
+            if (!playerItem.isEmpty() && storageItem.isBlank()) {
+                try (Transaction transaction = Transaction.openOuter()) {
+                    long inserted = altarEntity.itemStorage.insert(ItemVariant.of(playerItem), 1, transaction);
 
-                if (!player.getAbilities().creativeMode) {
-                    playerItem.decrement(1);
-                }
-
-                if (inserted == 1) {
-                    transaction.commit();
-                    return ActionResult.SUCCESS;
-                } else {
                     if (!player.getAbilities().creativeMode) {
-                        playerItem.increment(1);
+                        playerItem.decrement(1);
+                    }
+
+                    if (inserted == 1) {
+                        transaction.commit();
+                        return ActionResult.SUCCESS;
+                    } else {
+                        if (!player.getAbilities().creativeMode) {
+                            playerItem.increment(1);
+                        }
                     }
                 }
-            }
 
+            }
         }
 
         return ActionResult.PASS;
+    }
+
+    public static void spawnPopoutItem(World world, BlockPos pos, ItemStack storageItem) {
+        if (!world.isClient) {
+            ItemEntity itemEntity = new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, storageItem);
+            itemEntity.setToDefaultPickupDelay();
+            world.spawnEntity(itemEntity);
+        }
     }
 
 
@@ -162,7 +158,7 @@ public class AltarBlock extends HorizontalFacingBlock implements BlockEntityProv
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
             BlockEntityType<T> type) {
 
-        if (type != ModBlocks.ALTAR_ENTITY_TYPE) return null;
+        if (type != ModBlocks.ALTAR_ENTITY_TYPE && !world.isClient) return null;
 
         return (world1, pos, state1, entity) -> AltarEntity.tick((AltarEntity) entity);
     }

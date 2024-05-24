@@ -17,10 +17,10 @@
 
 ### Custom Crafting
 
-* basic crafting
 * custom crafting recipe
 * emi integration
-* crafting animation
+* improve crafting animation
+    * fix animation being stuck when no more blood is available
 
 ### Altar funnel connection
 
