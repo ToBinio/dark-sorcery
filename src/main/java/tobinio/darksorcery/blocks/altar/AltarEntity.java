@@ -264,28 +264,53 @@ public class AltarEntity extends BlockEntity {
         });
     }
 
+    private long getMaxExtraction() {
+        return FluidConstants.INGOT * altarLevel;
+    }
+
     private void extractFromFunnel() {
         this.extractionTick--;
 
         if (this.extractionTick <= 0) {
             this.extractingFunnels.clear();
 
-            for (BlockPos connectionFunnel : this.connectionFunnels) {
-                BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
+            var toBeExtracted = getMaxExtraction();
 
-                if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
-                    try (var transaction = Transaction.openOuter()) {
-                        long extract = bloodFunnelEntity.storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.INGOT, transaction);
+            outer:
+            while (true) {
+                var hasExtracted = false;
 
-                        if (extract != 0) {
-                            long insert = this.fluidStorage.insert(FluidVariant.of(ModFluids.BLOOD), extract, transaction);
+                for (BlockPos connectionFunnel : this.connectionFunnels) {
+                    System.out.println(toBeExtracted);
+                    if (toBeExtracted < FluidConstants.NUGGET) {
+                        break outer;
+                    }
 
-                            if (insert == extract) {
-                                transaction.commit();
-                                this.extractingFunnels.add(connectionFunnel);
+                    BlockEntity blockEntity = world.getBlockEntity(connectionFunnel);
+
+                    if (blockEntity instanceof BloodFunnelEntity bloodFunnelEntity) {
+                        try (var transaction = Transaction.openOuter()) {
+                            long extract = bloodFunnelEntity.storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.NUGGET, transaction);
+
+                            if (extract != 0) {
+                                long insert = this.fluidStorage.insert(FluidVariant.of(ModFluids.BLOOD), extract, transaction);
+
+                                if (insert == extract) {
+                                    hasExtracted = true;
+                                    toBeExtracted -= extract;
+                                    transaction.commit();
+
+                                    if (!this.extractingFunnels.contains(connectionFunnel)) {
+                                        this.extractingFunnels.add(connectionFunnel);
+                                    }
+                                }
                             }
                         }
                     }
+                }
+
+                if (!hasExtracted) {
+                    break;
                 }
             }
 

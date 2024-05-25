@@ -20,16 +20,24 @@
 * emi integration
 * add level to recipe
 * improve crafting animation
-    * fix animation being stuck when no more blood is available
+* fail crafting if no more blood
 
-### Altar funnel connection
+### Blood transport connection
 
 * max count
 * fix outline overlap problem..
 * show connection when destroyed (particle line)
+* storage block
 
 ---
 
 ## Sounds
 
 * place item on altar
+* finish crafting
+
+---
+
+## Fix
+
+* funnel disconnect sound & particle
