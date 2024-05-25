@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class BlockHighlightManager {
     public static final BlockHighlightManager INSTANCE = new BlockHighlightManager();
 
-    private List<HighlightedEntry> tobeHighlighted = new ArrayList<>();
+    private final List<HighlightedEntry> tobeHighlighted = new ArrayList<>();
 
     public void tick() {
         tobeHighlighted.removeIf(highlightedEntry -> highlightedEntry.timeToHighlight <= 0);

@@ -10,7 +10,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
@@ -36,7 +35,6 @@ import tobinio.darksorcery.tags.ModTags;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
 
@@ -66,7 +64,6 @@ public class AltarEntity extends BlockEntity {
 
         @Override
         protected void onFinalCommit() {
-            world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
             markDirty();
         }
     };
@@ -84,7 +81,6 @@ public class AltarEntity extends BlockEntity {
 
         @Override
         protected void onFinalCommit() {
-            world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
             markDirty();
         }
     };
@@ -101,15 +97,28 @@ public class AltarEntity extends BlockEntity {
         super(ModBlocks.ALTAR_ENTITY_TYPE, pos, state);
     }
 
+    @Override
+    public void markDirty() {
+        world.updateListeners(pos, getCachedState(), getCachedState(), Block.NOTIFY_LISTENERS);
+        super.markDirty();
+    }
+
     public static void tick(AltarEntity entity) {
-        entity.updateAltar();
+        assert entity.world != null;
 
-        entity.updateCandleLevel();
-        entity.tickConnectedFunnels();
+        if (entity.world.isClient) {
+            entity.displayFunnelExtractionProgress();
+            entity.displayCraftingProgress();
+        } else {
+            entity.updateAltar();
 
-        entity.craft();
+            entity.updateCandleLevel();
+            entity.tickConnectedFunnels();
 
-        entity.world.updateListeners(entity.pos, entity.getCachedState(), entity.getCachedState(), Block.NOTIFY_LISTENERS);
+            entity.craft();
+
+            entity.markDirty();
+        }
     }
 
     private void craft() {
@@ -203,11 +212,6 @@ public class AltarEntity extends BlockEntity {
         this.removeDeletedFunnels();
 
         this.extractFromFunnel();
-
-        if (world.isClient) {
-            this.displayFunnelExtractionProgress();
-            this.displayCraftingProgress();
-        }
     }
 
     private void displayFunnelExtractionProgress() {
@@ -366,14 +370,19 @@ public class AltarEntity extends BlockEntity {
         tag.putLong("itemAmount", itemStorage.amount);
 
         tag.putInt("craftingTime", craftingTime);
+        tag.putInt("extractionTick", extractionTick);
 
-        NbtList list = new NbtList();
-
+        NbtList connected = new NbtList();
         for (BlockPos connectionFunnel : connectionFunnels) {
-            list.add(NbtHelper.fromBlockPos(connectionFunnel));
+            connected.add(NbtHelper.fromBlockPos(connectionFunnel));
         }
+        tag.put("connectedFunnels", connected);
 
-        tag.put("connectedFunnels", list);
+        NbtList extracting = new NbtList();
+        for (BlockPos extractingFunnel : extractingFunnels) {
+            extracting.add(NbtHelper.fromBlockPos(extractingFunnel));
+        }
+        tag.put("extractingFunnels", extracting);
 
         super.writeNbt(tag);
     }
@@ -388,12 +397,18 @@ public class AltarEntity extends BlockEntity {
         itemStorage.amount = tag.getLong("itemAmount");
 
         craftingTime = tag.getInt("craftingTime");
+        extractionTick = tag.getInt("extractionTick");
 
         connectionFunnels.clear();
-        var list = tag.getList("connectedFunnels", NbtList.COMPOUND_TYPE);
-
-        for (NbtElement nbtElement : list) {
+        var connected = tag.getList("connectedFunnels", NbtList.COMPOUND_TYPE);
+        for (NbtElement nbtElement : connected) {
             connectionFunnels.add(NbtHelper.toBlockPos((NbtCompound) nbtElement));
+        }
+
+        extractingFunnels.clear();
+        var extracting = tag.getList("extractingFunnels", NbtList.COMPOUND_TYPE);
+        for (NbtElement nbtElement : extracting) {
+            extractingFunnels.add(NbtHelper.toBlockPos((NbtCompound) nbtElement));
         }
     }
 
