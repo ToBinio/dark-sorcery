@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "minecraft:blackstone",
+    "dark-sorcery:altar_blood_container",
     "minecraft:gilded_blackstone",
     "minecraft:gold_block",
     "minecraft:emerald_block",

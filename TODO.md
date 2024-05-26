@@ -7,9 +7,6 @@
 ### Fluid
 
 * fluid texture
-* fix color in overworld
-* dynmaic fluid rendering
-    * altar towers
 
 ---
 
@@ -41,3 +38,4 @@
 ## Fix
 
 * funnel disconnect sound & particle
+* base storage for altar

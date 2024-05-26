@@ -1,6 +1,7 @@
 package tobinio.darksorcery.blocks;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.block.AbstractBlock;
@@ -42,6 +43,10 @@ public class ModBlocks {
             .requiresTool()), "altar", true);
     public static BlockEntityType<AltarEntity> ALTAR_ENTITY_TYPE = registerBlockEntity(BlockEntityType.Builder.create(AltarEntity::new, ALTAR)
             .build(), "altar_entity");
+
+
+    public static Block ALTAR_BLOOD_CONTAINER = register(new AltarBloodContainer(AbstractBlock.Settings.create()
+            .nonOpaque(), FluidConstants.BOTTLE), "altar_blood_container", true);
 
     public static <T extends Block> T register(T block, String name, boolean shouldRegisterItem) {
         Identifier id = new Identifier(DarkSorcery.MOD_ID, name);

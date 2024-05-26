@@ -10,10 +10,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.*;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
@@ -26,6 +23,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import tobinio.darksorcery.DarkSorcery;
+import tobinio.darksorcery.blocks.AltarBloodContainer;
 import tobinio.darksorcery.blocks.ModBlocks;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelBlock;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelEntity;
@@ -34,7 +32,9 @@ import tobinio.darksorcery.recipe.AltarRecipe;
 import tobinio.darksorcery.tags.ModTags;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
 
@@ -59,7 +59,7 @@ public class AltarEntity extends BlockEntity {
 
         @Override
         protected long getCapacity(FluidVariant variant) {
-            return Math.max(getAltarLevel() * FluidConstants.BUCKET, FluidConstants.BOTTLE);
+            return bloodCapacity;
         }
 
         @Override
@@ -88,10 +88,13 @@ public class AltarEntity extends BlockEntity {
     private int craftingTime = 0;
 
     private int altarLevel = 0;
+    private long bloodCapacity = 0;
 
     private final List<BlockPos> connectionFunnels = new ArrayList<>();
     private final List<BlockPos> extractingFunnels = new ArrayList<>();
     private int extractionTick = 0;
+
+    private float[] towerFilledHeights = new float[TOWER_LOCATIONS.size()];
 
     public AltarEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.ALTAR_ENTITY_TYPE, pos, state);
@@ -281,7 +284,6 @@ public class AltarEntity extends BlockEntity {
                 var hasExtracted = false;
 
                 for (BlockPos connectionFunnel : this.connectionFunnels) {
-                    System.out.println(toBeExtracted);
                     if (toBeExtracted < FluidConstants.NUGGET) {
                         break outer;
                     }
@@ -328,8 +330,6 @@ public class AltarEntity extends BlockEntity {
             return 0;
         }
 
-        Direction rotation = this.getCachedState().get(Properties.HORIZONTAL_FACING);
-
         //get ground
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
@@ -346,10 +346,13 @@ public class AltarEntity extends BlockEntity {
         int tier4 = 0;
         int tier5 = 0;
 
-        for (Vec3i towerLocation : TOWER_LOCATIONS) {
+        long storageCapacity = 0;
+        ArrayList<Long> capacityPerLayer = new ArrayList<>();
+        ArrayList<Long> towerHeights = new ArrayList<>();
 
-            Vec3d vec3d = new Vec3d(towerLocation.getX(), towerLocation.getY(), towerLocation.getZ()).rotateY((float) (-rotation.asRotation() * (Math.PI) / 180 + Math.PI));
-            var towerPos = pos.add(new Vec3i((int) Math.round(vec3d.x), (int) Math.round(vec3d.y), (int) Math.round(vec3d.z)));
+        for (Vec3d towerLocation : getRotatedTowerLocations()) {
+            var height = 0;
+            var towerPos = pos.add((int) Math.round(towerLocation.x), (int) Math.round(towerLocation.y), (int) Math.round(towerLocation.z));
 
             if (!world.getBlockState(towerPos).isIn(ModTags.ALTAR_TOWER_BLOCKS)) {
                 return 0;
@@ -357,6 +360,17 @@ public class AltarEntity extends BlockEntity {
 
             while (true) {
                 BlockState block = world.getBlockState(towerPos);
+
+                if (block.getBlock() instanceof AltarBloodContainer altarBloodContainer) {
+
+                    int i1 = (height + 1) - capacityPerLayer.size();
+                    for (int i = 0; i <= i1; i++) {
+                        capacityPerLayer.add(0L);
+                    }
+
+                    capacityPerLayer.set(height, capacityPerLayer.get(height) + altarBloodContainer.getStorage());
+                    storageCapacity += altarBloodContainer.getStorage();
+                }
 
                 if (!block.isIn(ModTags.ALTAR_TOWER_BLOCKS)) {
                     break;
@@ -370,7 +384,38 @@ public class AltarEntity extends BlockEntity {
                 if (block.isIn(ModTags.ALTAR_TIER5_BLOCKS)) tier5++;
 
                 towerPos = towerPos.up();
+                height++;
             }
+
+            towerHeights.add((long) height);
+        }
+
+        bloodCapacity = storageCapacity;
+        var currentBlood = fluidStorage.amount;
+
+        for (int height = 0; height < capacityPerLayer.size(); height++) {
+            for (int i = 0; i < towerHeights.size(); i++) {
+                var towerHeight = towerHeights.get(i);
+                if (towerHeight == height) {
+                    towerFilledHeights[i] = height;
+                }
+            }
+
+            if (capacityPerLayer.get(height) <= currentBlood) {
+                currentBlood -= capacityPerLayer.get(height);
+                continue;
+            }
+
+            float filledPercentage = (float) currentBlood / capacityPerLayer.get(height);
+
+            for (int i = 0; i < towerHeights.size(); i++) {
+                var towerHeight = towerHeights.get(i);
+                if (towerHeight > height) {
+                    towerFilledHeights[i] = height + filledPercentage;
+                }
+            }
+
+            break;
         }
 
         if (tier5 > 10) return 5;
@@ -409,6 +454,12 @@ public class AltarEntity extends BlockEntity {
         }
         tag.put("extractingFunnels", extracting);
 
+        NbtList fillHeights = new NbtList();
+        for (Float fillHeight : towerFilledHeights) {
+            fillHeights.add(NbtFloat.of(fillHeight));
+        }
+        tag.put("towerFilledHeights", fillHeights);
+
         super.writeNbt(tag);
     }
 
@@ -434,6 +485,11 @@ public class AltarEntity extends BlockEntity {
         var extracting = tag.getList("extractingFunnels", NbtList.COMPOUND_TYPE);
         for (NbtElement nbtElement : extracting) {
             extractingFunnels.add(NbtHelper.toBlockPos((NbtCompound) nbtElement));
+        }
+
+        var fillHeights = tag.getList("towerFilledHeights", NbtList.FLOAT_TYPE);
+        for (int i = 0; i < fillHeights.size(); i++) {
+            towerFilledHeights[i] = fillHeights.getFloat(i);
         }
     }
 
@@ -467,6 +523,15 @@ public class AltarEntity extends BlockEntity {
         markDirty();
     }
 
+    public List<Vec3d> getRotatedTowerLocations() {
+        Direction rotation = this.getCachedState().get(Properties.HORIZONTAL_FACING);
+
+        return TOWER_LOCATIONS.stream()
+                .map(towerLocation -> new Vec3d(towerLocation.getX(), towerLocation.getY(), towerLocation.getZ()).rotateY((float) (-rotation.asRotation() * (Math.PI) / 180 + Math.PI)))
+                .collect(Collectors.toList());
+
+    }
+
     public List<BlockPos> getConnectionFunnels() {
         return connectionFunnels;
     }
@@ -477,5 +542,9 @@ public class AltarEntity extends BlockEntity {
 
     public int getExtractionTick() {
         return extractionTick;
+    }
+
+    public float[] getTowerFilledHeights() {
+        return towerFilledHeights;
     }
 }

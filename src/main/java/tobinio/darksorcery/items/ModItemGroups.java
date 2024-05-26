@@ -9,7 +9,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import tobinio.darksorcery.DarkSorcery;
 import tobinio.darksorcery.blocks.ModBlocks;
-import tobinio.darksorcery.fluids.ModFluids;
 
 /**
  * Created: 21.04.24
@@ -30,6 +29,7 @@ public class ModItemGroups {
 
                 entries.add(ModBlocks.BLOOD_FUNNEL);
                 entries.add(ModBlocks.ALTAR);
+                entries.add(ModBlocks.ALTAR_BLOOD_CONTAINER);
             })
             .build());
 

@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "minecraft:blackstone"
+    "minecraft:blackstone",
+    "dark-sorcery:altar_blood_container"
   ]
 }

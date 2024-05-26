@@ -30,12 +30,13 @@ public class BlockTagProvider extends FabricTagProvider.BlockTagProvider {
         getOrCreateTagBuilder(ModTags.ALTAR_GROUND).add(Blocks.CALCITE);
 
         getOrCreateTagBuilder(ModTags.ALTAR_TOWER_BLOCKS).add(Blocks.BLACKSTONE)
+                .add(ModBlocks.ALTAR_BLOOD_CONTAINER)
                 .add(Blocks.GILDED_BLACKSTONE)
                 .add(Blocks.GOLD_BLOCK)
                 .add(Blocks.EMERALD_BLOCK)
                 .add(Blocks.DIAMOND_BLOCK);
 
-        getOrCreateTagBuilder(ModTags.ALTAR_TIER1_BLOCKS).add(Blocks.BLACKSTONE);
+        getOrCreateTagBuilder(ModTags.ALTAR_TIER1_BLOCKS).add(Blocks.BLACKSTONE).add(ModBlocks.ALTAR_BLOOD_CONTAINER);
         getOrCreateTagBuilder(ModTags.ALTAR_TIER2_BLOCKS).add(Blocks.GILDED_BLACKSTONE);
         getOrCreateTagBuilder(ModTags.ALTAR_TIER3_BLOCKS).add(Blocks.GOLD_BLOCK);
         getOrCreateTagBuilder(ModTags.ALTAR_TIER4_BLOCKS).add(Blocks.EMERALD_BLOCK);
