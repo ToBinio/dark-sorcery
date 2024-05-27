@@ -4,10 +4,12 @@ import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
@@ -35,28 +37,28 @@ public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
     private final static float[][][] SIDE_VERTEXES = new float[][][]{
             //x, z, u, v
             {
-                    {ONE, ZERO, 0, 0},
-                    {ONE, ZERO, 1, 0},
-                    {ZERO, ZERO, 1, 1},
-                    {ZERO, ZERO, 0, 1},
+                    {ONE, ZERO, 0, ZERO},
+                    {ONE, ZERO, 1, ZERO},
+                    {ZERO, ZERO, 1, ONE},
+                    {ZERO, ZERO, 0, ONE},
             },
             {
-                    {ZERO, ONE, 0, 0},
-                    {ZERO, ONE, 1, 0},
-                    {ONE, ONE, 1, 1},
-                    {ONE, ONE, 0, 1},
+                    {ZERO, ONE, 0, ZERO},
+                    {ZERO, ONE, 1, ZERO},
+                    {ONE, ONE, 1, ONE},
+                    {ONE, ONE, 0, ONE},
             },
             {
-                    {ZERO, ZERO, 0, 0},
-                    {ZERO, ZERO, 1, 0},
-                    {ZERO, ONE, 1, 1},
-                    {ZERO, ONE, 0, 1},
+                    {ZERO, ZERO, 0, ZERO},
+                    {ZERO, ZERO, 1, ZERO},
+                    {ZERO, ONE, 1, ONE},
+                    {ZERO, ONE, 0, ONE},
             },
             {
-                    {ONE, ONE, 0, 0},
-                    {ONE, ONE, 1, 0},
-                    {ONE, ZERO, 1, 1},
-                    {ONE, ZERO, 0, 1},
+                    {ONE, ONE, 0, ZERO},
+                    {ONE, ONE, 1, ZERO},
+                    {ONE, ZERO, 1, ONE},
+                    {ONE, ZERO, 0, ONE},
             },
     };
 
@@ -86,48 +88,52 @@ public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
         List<Vec3d> rotatedTowerLocations = entity.getRotatedTowerLocations();
 
         for (int towerIndex = 0; towerIndex < AltarEntity.TOWER_LOCATIONS.size(); towerIndex++) {
-
             var towerLocation = rotatedTowerLocations.get(towerIndex);
             float towerHeight = entity.getTowerFilledHeights()[towerIndex];
 
-            matrices.push();
-            matrices.translate(towerLocation.getX(), towerLocation.getY(), towerLocation.getZ());
+            drawTowerFluids(matrices, light, overlay, towerLocation, consumer, towerHeight, spriteColor, sprite);
+        }
 
-            var entry = matrices.peek();
-            var modelMatrix = entry.getPositionMatrix();
-            var normalMatrix = entry.getNormalMatrix();
+        matrices.pop();
+    }
 
-            for (float[] pos : TOP_VERTEXES) {
-                consumer.vertex(modelMatrix, pos[0], towerHeight, pos[1])
-                        .color(spriteColor)
-                        .texture(sprite.getFrameU(pos[0]), sprite.getFrameV(pos[1]))
-                        .light(light)
-                        .overlay(overlay)
-                        .normal(normalMatrix, 0, 1, 0)
-                        .next();
+    private static void drawTowerFluids(MatrixStack matrices, int light, int overlay, Vec3d towerLocation,
+            VertexConsumer consumer, float towerHeight, int spriteColor, Sprite sprite) {
+        matrices.push();
+        matrices.translate(towerLocation.getX(), towerLocation.getY(), towerLocation.getZ());
+
+        var entry = matrices.peek();
+        var modelMatrix = entry.getPositionMatrix();
+        var normalMatrix = entry.getNormalMatrix();
+
+        int towerSections = (int) Math.ceil(towerHeight);
+
+        for (int section = 0; section < towerSections; section++) {
+            float sectionHeight = 1;
+
+            if (section == towerSections - 1) {
+                sectionHeight = towerHeight % 1 != 0 ? towerHeight % 1 : 1;
             }
 
-            for (int i = TOP_VERTEXES.length - 1; i >= 0; i--) {
-                float[] pos = TOP_VERTEXES[i];
+            sectionHeight = sectionHeight * 14 / 16f + 1 / 16f;
 
-                consumer.vertex(modelMatrix, pos[0], towerHeight, pos[1])
-                        .color(spriteColor)
-                        .texture(sprite.getFrameU(pos[0]), sprite.getFrameV(pos[1]))
-                        .light(light)
-                        .overlay(overlay)
-                        .normal(normalMatrix, 0, 1, 0)
-                        .next();
-            }
-
-            for (float[][] sideVertex : SIDE_VERTEXES) {
-                for (int i = 0; i < sideVertex.length; i++) {
-                    float[] pos = sideVertex[i];
-
-                    float height = (i == 0 || i == 3) ? towerHeight : 0;
-
-                    consumer.vertex(modelMatrix, pos[0], height, pos[1])
+            if (section == towerSections - 1) {
+                for (float[] pos : TOP_VERTEXES) {
+                    consumer.vertex(modelMatrix, pos[0], section + sectionHeight, pos[1])
                             .color(spriteColor)
-                            .texture(sprite.getFrameU(pos[2]), sprite.getFrameV(pos[3]))
+                            .texture(sprite.getFrameU(pos[0]), sprite.getFrameV(pos[1]))
+                            .light(light)
+                            .overlay(overlay)
+                            .normal(normalMatrix, 0, 1, 0)
+                            .next();
+                }
+
+                for (int i = TOP_VERTEXES.length - 1; i >= 0; i--) {
+                    float[] pos = TOP_VERTEXES[i];
+
+                    consumer.vertex(modelMatrix, pos[0], section + sectionHeight, pos[1])
+                            .color(spriteColor)
+                            .texture(sprite.getFrameU(pos[0]), sprite.getFrameV(pos[1]))
                             .light(light)
                             .overlay(overlay)
                             .normal(normalMatrix, 0, 1, 0)
@@ -135,7 +141,21 @@ public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
                 }
             }
 
-            matrices.pop();
+            for (float[][] sideVertex : SIDE_VERTEXES) {
+                for (int i = 0; i < sideVertex.length; i++) {
+                    float[] pos = sideVertex[i];
+
+                    float height = (i == 0 || i == 3) ? section + sectionHeight : section;
+
+                    consumer.vertex(modelMatrix, pos[0], height, pos[1])
+                            .color(spriteColor)
+                            .texture(sprite.getFrameU(Math.min(pos[2], sectionHeight)), sprite.getFrameV(pos[3]))
+                            .light(light)
+                            .overlay(overlay)
+                            .normal(normalMatrix, 0, 1, 0)
+                            .next();
+                }
+            }
         }
 
         matrices.pop();
