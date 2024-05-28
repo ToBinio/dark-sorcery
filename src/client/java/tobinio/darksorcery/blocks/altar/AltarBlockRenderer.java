@@ -23,8 +23,11 @@ import java.util.List;
  */
 public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
 
-    private final static float ZERO = 3 / 16f;
-    private final static float ONE = 13 / 16f;
+    private final static float ZERO = 2.1f / 16f;
+    private final static float ONE = 13.9f / 16f;
+
+    private final static float PADDING_TOP = 2 / 16f;
+    private final static float PADDING_BOTTOM = 2 / 16f;
 
     private final static float[][] TOP_VERTEXES = new float[][]{
             //x, y
@@ -83,7 +86,7 @@ public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
         var sprite = FluidVariantRendering.getSprite(entity.fluidStorage.variant);
         var spriteColor = FluidVariantRendering.getColor(entity.fluidStorage.variant);
 
-        var consumer = vertexConsumers.getBuffer(RenderLayer.getTranslucent());
+        var consumer = vertexConsumers.getBuffer(RenderLayer.getTranslucentMovingBlock());
 
         List<Vec3d> rotatedTowerLocations = entity.getRotatedTowerLocations();
 
@@ -115,7 +118,7 @@ public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
                 sectionHeight = towerHeight % 1 != 0 ? towerHeight % 1 : 1;
             }
 
-            sectionHeight = sectionHeight * 14 / 16f + 1 / 16f;
+            sectionHeight = sectionHeight * (1 - PADDING_TOP - PADDING_BOTTOM) + PADDING_TOP;
 
             if (section == towerSections - 1) {
                 for (float[] pos : TOP_VERTEXES) {

@@ -39,3 +39,4 @@
 
 * funnel disconnect sound & particle
 * base storage for altar
+* bucket into funnel gives bottle

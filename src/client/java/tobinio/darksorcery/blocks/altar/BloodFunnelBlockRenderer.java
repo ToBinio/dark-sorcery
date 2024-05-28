@@ -1,13 +1,11 @@
 package tobinio.darksorcery.blocks.altar;
 
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.fluid.Fluids;
 import tobinio.darksorcery.blocks.bloodfunnel.BloodFunnelEntity;
 
 /**
@@ -52,8 +50,7 @@ public class BloodFunnelBlockRenderer implements BlockEntityRenderer<BloodFunnel
         var modelMatrix = entry.getPositionMatrix();
         var normalMatrix = entry.getNormalMatrix();
 
-        var consumer = vertexConsumers.getBuffer(RenderLayer.getTranslucent());
-
+        var consumer = vertexConsumers.getBuffer(RenderLayer.getTranslucentMovingBlock());
 
         for (float[] pos : VERTEXES) {
             consumer.vertex(modelMatrix, pos[0], MIN_HEIGHT + (MAX_HEIGHT - MIN_HEIGHT) * fillPercentage, pos[1])

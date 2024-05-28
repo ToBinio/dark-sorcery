@@ -27,7 +27,7 @@ public class DarkSorceryClient implements ClientModInitializer {
         FluidRenderHandlerRegistry.INSTANCE.register(ModFluids.BLOOD, ModFluids.FLOWING_BLOOD, new SimpleFluidRenderHandler(new Identifier("minecraft:block/water_still"), new Identifier("minecraft:block/water_flow"), Colors.RED));
         BlockRenderLayerMap.INSTANCE.putFluids(RenderLayer.getTranslucent(), ModFluids.BLOOD, ModFluids.FLOWING_BLOOD);
 
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.ALTAR_BLOOD_CONTAINER, RenderLayer.getTranslucent());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.ALTAR_BLOOD_CONTAINER, RenderLayer.getCutout());
 
         BlockEntityRendererFactories.register(ModBlocks.ALTAR_ENTITY_TYPE, AltarBlockRenderer::new);
         BlockEntityRendererFactories.register(ModBlocks.BLOOD_FUNNEL_ENTITY_TYPE, BloodFunnelBlockRenderer::new);
