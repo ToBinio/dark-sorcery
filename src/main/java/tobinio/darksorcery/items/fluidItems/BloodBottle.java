@@ -39,10 +39,11 @@ public class BloodBottle extends Item {
         try (Transaction transaction = Transaction.openOuter()) {
             long insert = storage.insert(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BOTTLE, transaction);
 
+            player.playSound(SoundEvents.ITEM_BOTTLE_EMPTY, 1.0F, 1.0F);
+            
             if (insert == FluidConstants.BOTTLE) {
                 transaction.commit();
                 player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.TINTED_GLASS_BOTTLE)));
-                player.playSound(SoundEvents.ITEM_BOTTLE_EMPTY, 1.0F, 1.0F);
                 return ActionResult.SUCCESS;
             }
         }

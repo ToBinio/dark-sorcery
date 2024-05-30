@@ -42,10 +42,11 @@ public class TintedBottle extends Item {
         try (Transaction transaction = Transaction.openOuter()) {
             long extract = storage.extract(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BOTTLE, transaction);
 
+            player.playSound(SoundEvents.ITEM_BOTTLE_FILL, 1.0F, 1.0F);
+
             if (extract == FluidConstants.BOTTLE) {
                 transaction.commit();
                 player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.BLOODY_TINTED_GLASS_BOTTLE)));
-                player.playSound(SoundEvents.ITEM_BOTTLE_FILL, 1.0F, 1.0F);
                 return ActionResult.SUCCESS;
             }
         }

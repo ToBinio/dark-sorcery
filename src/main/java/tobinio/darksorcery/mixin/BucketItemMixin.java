@@ -11,7 +11,6 @@ import net.minecraft.item.BucketItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsage;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
@@ -45,10 +44,13 @@ public class BucketItemMixin {
 
             if (extract == FluidConstants.BUCKET) {
                 transaction.commit();
-                user.setStackInHand(hand, ItemUsage.exchangeStack(itemStack, user, new ItemStack(ModItems.BLOOD_BUCKET)));
+
+                ItemStack newBucket = ItemUsage.exchangeStack(itemStack, user, new ItemStack(ModItems.BLOOD_BUCKET));
+
+                user.setStackInHand(hand, newBucket);
                 user.playSound(SoundEvents.ITEM_BUCKET_FILL, 1.0F, 1.0F);
 
-                cir.setReturnValue(TypedActionResult.success(itemStack));
+                cir.setReturnValue(TypedActionResult.success(newBucket));
                 return;
             }
         }

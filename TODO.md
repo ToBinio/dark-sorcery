@@ -12,6 +12,14 @@
 
 ## Features
 
+### Altars
+
+* max transfer speed up block
+* generic level block
+* fix level calculation (see todo)
+* dont drop crafted items
+* block item transfer while crafting
+
 ### Custom Crafting
 
 * emi integration
@@ -35,8 +43,4 @@
 
 ---
 
-## Fix
-
-* funnel disconnect sound & particle
-* base storage for altar
-* bucket into funnel gives bottle
+## issues

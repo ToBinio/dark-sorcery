@@ -120,7 +120,7 @@ public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
 
             sectionHeight = sectionHeight * (1 - PADDING_TOP - PADDING_BOTTOM) + PADDING_TOP;
 
-            if (section == towerSections - 1) {
+            if (section == towerSections - 1 && towerHeight % 1 != 0) {
                 for (float[] pos : TOP_VERTEXES) {
                     consumer.vertex(modelMatrix, pos[0], section + sectionHeight, pos[1])
                             .color(spriteColor)

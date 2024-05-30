@@ -6,10 +6,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BucketItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.*;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
@@ -42,10 +39,11 @@ public class BloodBucket extends BucketItem {
         try (Transaction transaction = Transaction.openOuter()) {
             long insert = storage.insert(FluidVariant.of(ModFluids.BLOOD), FluidConstants.BUCKET, transaction);
 
+            player.playSound(SoundEvents.ITEM_BOTTLE_EMPTY, 1.0F, 1.0F);
+
             if (insert == FluidConstants.BUCKET) {
                 transaction.commit();
-                player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(ModItems.TINTED_GLASS_BOTTLE)));
-                player.playSound(SoundEvents.ITEM_BOTTLE_EMPTY, 1.0F, 1.0F);
+                player.setStackInHand(hand, ItemUsage.exchangeStack(item, player, new ItemStack(Items.BUCKET)));
                 return ActionResult.SUCCESS;
             }
         }

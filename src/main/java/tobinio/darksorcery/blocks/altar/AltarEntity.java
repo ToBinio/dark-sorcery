@@ -32,7 +32,6 @@ import tobinio.darksorcery.recipe.AltarRecipe;
 import tobinio.darksorcery.tags.ModTags;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +43,9 @@ import static tobinio.darksorcery.blocks.altar.AltarBlock.LIT_CANDLES;
  * @author Tobias Frischmann
  */
 public class AltarEntity extends BlockEntity {
+
+
+    public static final long BASE_BLOOD_CAPACITY = FluidConstants.BOTTLE;
 
     public static final List<Vec3i> TOWER_LOCATIONS = List.of(new Vec3i(5, -1, -1), new Vec3i(4, -1, 1), new Vec3i(2, -1, 2), new Vec3i(0, -1, 3), new Vec3i(-2, -1, 2), new Vec3i(-4, -1, 1), new Vec3i(-5, -1, -1));
 
@@ -94,7 +96,7 @@ public class AltarEntity extends BlockEntity {
     private final List<BlockPos> extractingFunnels = new ArrayList<>();
     private int extractionTick = 0;
 
-    private float[] towerFilledHeights = new float[TOWER_LOCATIONS.size()];
+    private final float[] towerFilledHeights = new float[TOWER_LOCATIONS.size()];
 
     public AltarEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.ALTAR_ENTITY_TYPE, pos, state);
@@ -109,6 +111,9 @@ public class AltarEntity extends BlockEntity {
     public static void tick(AltarEntity entity) {
         assert entity.world != null;
 
+        //done client and server side for particles
+        entity.removeDeletedFunnels();
+
         if (entity.world.isClient) {
             entity.displayFunnelExtractionProgress();
             entity.displayCraftingProgress();
@@ -116,7 +121,8 @@ public class AltarEntity extends BlockEntity {
             entity.updateAltar();
 
             entity.updateCandleLevel();
-            entity.tickConnectedFunnels();
+
+            entity.extractFromFunnel();
 
             entity.craft();
 
@@ -211,12 +217,6 @@ public class AltarEntity extends BlockEntity {
         }
     }
 
-    private void tickConnectedFunnels() {
-        this.removeDeletedFunnels();
-
-        this.extractFromFunnel();
-    }
-
     private void displayFunnelExtractionProgress() {
         var progress = (20f - this.getExtractionTick()) / 20;
 
@@ -258,12 +258,12 @@ public class AltarEntity extends BlockEntity {
         this.connectionFunnels.removeIf(blockPos -> {
             BlockEntity blockEntity = world.getBlockEntity(blockPos);
 
-            if (!(blockEntity instanceof BloodFunnelEntity)) {
-                BloodFunnelBlock.disableEffect(world, blockPos);
-                return true;
+            if (blockEntity instanceof BloodFunnelEntity) {
+                return false;
             }
 
-            return false;
+            BloodFunnelBlock.disableEffect(world, blockPos);
+            return true;
         });
     }
 
@@ -330,11 +330,13 @@ public class AltarEntity extends BlockEntity {
             return 0;
         }
 
+        boolean isValidStructure = true;
+
         //get ground
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
                 if (!this.world.getBlockState(pos.add(x, -1, z)).isIn(ModTags.ALTAR_GROUND)) {
-                    return 0;
+                    isValidStructure = false;
                 }
             }
         }
@@ -355,7 +357,7 @@ public class AltarEntity extends BlockEntity {
             var towerPos = pos.add((int) Math.round(towerLocation.x), (int) Math.round(towerLocation.y), (int) Math.round(towerLocation.z));
 
             if (!world.getBlockState(towerPos).isIn(ModTags.ALTAR_TOWER_BLOCKS)) {
-                return 0;
+                isValidStructure = false;
             }
 
             while (true) {
@@ -390,8 +392,8 @@ public class AltarEntity extends BlockEntity {
             towerHeights.add((long) height);
         }
 
-        bloodCapacity = storageCapacity;
-        var currentBlood = fluidStorage.amount;
+        bloodCapacity = storageCapacity + BASE_BLOOD_CAPACITY;
+        var bloodToDived = fluidStorage.amount - BASE_BLOOD_CAPACITY;
 
         for (int height = 0; height < capacityPerLayer.size(); height++) {
             for (int i = 0; i < towerHeights.size(); i++) {
@@ -401,12 +403,12 @@ public class AltarEntity extends BlockEntity {
                 }
             }
 
-            if (capacityPerLayer.get(height) <= currentBlood) {
-                currentBlood -= capacityPerLayer.get(height);
+            if (capacityPerLayer.get(height) <= bloodToDived) {
+                bloodToDived -= capacityPerLayer.get(height);
                 continue;
             }
 
-            float filledPercentage = (float) currentBlood / capacityPerLayer.get(height);
+            float filledPercentage = (float) bloodToDived / capacityPerLayer.get(height);
 
             for (int i = 0; i < towerHeights.size(); i++) {
                 var towerHeight = towerHeights.get(i);
@@ -416,6 +418,10 @@ public class AltarEntity extends BlockEntity {
             }
 
             break;
+        }
+
+        if (!isValidStructure) {
+            return 0;
         }
 
         if (tier5 > 10) return 5;

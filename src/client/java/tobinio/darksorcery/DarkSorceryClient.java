@@ -36,8 +36,7 @@ public class DarkSorceryClient implements ClientModInitializer {
             BlockHighlightManager.INSTANCE.tick();
         });
 
-        WorldRenderEvents.LAST.register((context) -> {
-
+        WorldRenderEvents.AFTER_ENTITIES.register((context) -> {
             MatrixStack matrixStack = context.matrixStack();
             Vec3d camera = context.camera().getPos();
 
