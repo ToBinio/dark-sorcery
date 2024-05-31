@@ -32,6 +32,7 @@ import tobinio.darksorcery.recipe.AltarRecipe;
 import tobinio.darksorcery.tags.ModTags;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -341,79 +342,36 @@ public class AltarEntity extends BlockEntity {
             }
         }
 
-        //check towers
-        int tier1 = 0;
-        int tier2 = 0;
-        int tier3 = 0;
-        int tier4 = 0;
-        int tier5 = 0;
+        AltarTowers altarTowers = new AltarTowers(this);
+        List<Integer> towerHeights = altarTowers.getHeights();
+        List<Long> capacityPerLayer = altarTowers.getBloodCapacityPerLayer();
 
-        long storageCapacity = 0;
-        ArrayList<Long> capacityPerLayer = new ArrayList<>();
-        ArrayList<Long> towerHeights = new ArrayList<>();
-
-        for (Vec3d towerLocation : getRotatedTowerLocations()) {
-            var height = 0;
-            var towerPos = pos.add((int) Math.round(towerLocation.x), (int) Math.round(towerLocation.y), (int) Math.round(towerLocation.z));
-
-            if (!world.getBlockState(towerPos).isIn(ModTags.ALTAR_TOWER_BLOCKS)) {
-                isValidStructure = false;
-            }
-
-            while (true) {
-                BlockState block = world.getBlockState(towerPos);
-
-                if (block.getBlock() instanceof AltarBloodContainer altarBloodContainer) {
-
-                    int i1 = (height + 1) - capacityPerLayer.size();
-                    for (int i = 0; i <= i1; i++) {
-                        capacityPerLayer.add(0L);
-                    }
-
-                    capacityPerLayer.set(height, capacityPerLayer.get(height) + altarBloodContainer.getStorage());
-                    storageCapacity += altarBloodContainer.getStorage();
-                }
-
-                if (!block.isIn(ModTags.ALTAR_TOWER_BLOCKS)) {
-                    break;
-                }
-
-                //todo also count higher level as lower level
-                if (block.isIn(ModTags.ALTAR_TIER1_BLOCKS)) tier1++;
-                if (block.isIn(ModTags.ALTAR_TIER2_BLOCKS)) tier2++;
-                if (block.isIn(ModTags.ALTAR_TIER3_BLOCKS)) tier3++;
-                if (block.isIn(ModTags.ALTAR_TIER4_BLOCKS)) tier4++;
-                if (block.isIn(ModTags.ALTAR_TIER5_BLOCKS)) tier5++;
-
-                towerPos = towerPos.up();
-                height++;
-            }
-
-            towerHeights.add((long) height);
-        }
+        long storageCapacity = capacityPerLayer.stream().mapToLong(Long::longValue).sum();
 
         bloodCapacity = storageCapacity + BASE_BLOOD_CAPACITY;
         var bloodToDived = fluidStorage.amount - BASE_BLOOD_CAPACITY;
 
-        for (int height = 0; height < capacityPerLayer.size(); height++) {
-            for (int i = 0; i < towerHeights.size(); i++) {
-                var towerHeight = towerHeights.get(i);
-                if (towerHeight == height) {
-                    towerFilledHeights[i] = height;
-                }
-            }
+        for (int height = 1; height <= capacityPerLayer.size(); height++) {
+            Long layerCapacity = capacityPerLayer.get(height - 1);
 
-            if (capacityPerLayer.get(height) <= bloodToDived) {
-                bloodToDived -= capacityPerLayer.get(height);
+            if (layerCapacity <= bloodToDived) {
+                bloodToDived -= layerCapacity;
+
+                for (int i = 0; i < towerHeights.size(); i++) {
+                    if (towerHeights.get(i) >= height) {
+                        towerFilledHeights[i] = height;
+                    }
+                }
+
                 continue;
             }
 
-            float filledPercentage = (float) bloodToDived / capacityPerLayer.get(height);
+            float filledPercentage = (float) bloodToDived / layerCapacity;
 
             for (int i = 0; i < towerHeights.size(); i++) {
                 var towerHeight = towerHeights.get(i);
-                if (towerHeight > height) {
-                    towerFilledHeights[i] = height + filledPercentage;
+                if (towerHeight >= height) {
+                    towerFilledHeights[i] = (height - 1) + filledPercentage;
                 }
             }
 
@@ -424,13 +382,7 @@ public class AltarEntity extends BlockEntity {
             return 0;
         }
 
-        if (tier5 > 10) return 5;
-        if (tier4 > 10) return 4;
-        if (tier3 > 10) return 3;
-        if (tier2 > 10) return 2;
-        if (tier1 > 10) return 1;
-
-        return 0;
+        return altarTowers.getLevel();
     }
 
     public int getAltarLevel() {
@@ -529,7 +481,7 @@ public class AltarEntity extends BlockEntity {
         markDirty();
     }
 
-    public List<Vec3d> getRotatedTowerLocations() {
+    public List<Vec3d> getRotatedTowerOffsets() {
         Direction rotation = this.getCachedState().get(Properties.HORIZONTAL_FACING);
 
         return TOWER_LOCATIONS.stream()

@@ -88,7 +88,7 @@ public class AltarBlockRenderer implements BlockEntityRenderer<AltarEntity> {
 
         var consumer = vertexConsumers.getBuffer(RenderLayer.getTranslucentMovingBlock());
 
-        List<Vec3d> rotatedTowerLocations = entity.getRotatedTowerLocations();
+        List<Vec3d> rotatedTowerLocations = entity.getRotatedTowerOffsets();
 
         for (int towerIndex = 0; towerIndex < AltarEntity.TOWER_LOCATIONS.size(); towerIndex++) {
             var towerLocation = rotatedTowerLocations.get(towerIndex);
