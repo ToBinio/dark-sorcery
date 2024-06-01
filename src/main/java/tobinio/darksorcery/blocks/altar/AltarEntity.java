@@ -3,6 +3,7 @@ package tobinio.darksorcery.blocks.altar;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.Block;
@@ -83,8 +84,21 @@ public class AltarEntity extends BlockEntity {
         }
 
         @Override
+        protected boolean canExtract(ItemVariant variant) {
+            return craftingTime == 0;
+        }
+
+        @Override
         protected void onFinalCommit() {
             markDirty();
+
+            craftingTime = 0;
+
+            AltarRecipe altarRecipe = getCurrentRecipe();
+
+            if (altarRecipe != null) {
+                craftingTime = altarRecipe.getTime();
+            }
         }
     };
 
@@ -141,12 +155,6 @@ public class AltarEntity extends BlockEntity {
             if (craftingTime == 0) {
                 finishCrafting();
             }
-        } else {
-            AltarRecipe altarRecipe = getCurrentRecipe();
-
-            if (altarRecipe != null) {
-                craftingTime = altarRecipe.getTime();
-            }
         }
     }
 
@@ -163,10 +171,10 @@ public class AltarEntity extends BlockEntity {
             AltarRecipe currentRecipe = getCurrentRecipe();
 
             ItemVariant storedItem = this.itemStorage.getResource();
-            long extract = this.itemStorage.extract(storedItem, 1, transaction);
+            var extract = this.itemStorage.extract(storedItem, 1, transaction);
+            var insert = this.itemStorage.insert(ItemVariant.of(currentRecipe.getOutput()), 1, transaction);
 
-            if (extract == 1) {
-                AltarBlock.spawnPopoutItem(world, pos, currentRecipe.getOutput());
+            if (extract == 1 && insert == 1) {
                 transaction.commit();
             }
         }
@@ -336,6 +344,11 @@ public class AltarEntity extends BlockEntity {
         //get ground
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
+
+                //allow any block direction under altar
+                if (x == 0 && z == 0)
+                    continue;
+
                 if (!this.world.getBlockState(pos.add(x, -1, z)).isIn(ModTags.ALTAR_GROUND)) {
                     isValidStructure = false;
                 }

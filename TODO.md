@@ -16,8 +16,7 @@
 
 * max transfer speed up block
 * generic level block
-* dont drop crafted items
-* block item transfer while crafting
+* improve crafting finish animation
 
 ### Custom Crafting
 
